@@ -26,8 +26,6 @@ export default function LoginPage() {
 
           if (decodedToken.exp < currentTime) {
             localStorage.removeItem("token");
-          } else {
-            await checkUserInCouple(decodedToken.id);
           }
         } catch (error) {
           console.error("Erro ao decodificar o token:", error);
@@ -73,7 +71,7 @@ export default function LoginPage() {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:3000/api/user/login", {
+      const res = await fetch("/api/user/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -97,7 +95,7 @@ export default function LoginPage() {
 
   const checkUserInCouple = async (userId) => {
     try {
-      const res = await fetch(`http://localhost:3000/api/couple/checkUserCouple/${userId}`);
+      const res = await fetch(`/api/couple/checkUserCouple/${userId}`);
       const data = await res.json();
 
       if (data.exists) {

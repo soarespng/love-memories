@@ -73,7 +73,7 @@ export default function SyncPage() {
 
   const fetchUserCode = async (userId) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/user/${userId}`);
+      const response = await fetch(`/api/user/${userId}`);
       const data = await response.json();
       if (response.ok) {
         const userCode = data.user.sync_code;
@@ -89,7 +89,7 @@ export default function SyncPage() {
   const handleSync = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:3000/api/user/link', {
+      const response = await fetch('/api/user/link', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

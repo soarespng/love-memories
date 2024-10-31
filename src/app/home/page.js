@@ -49,7 +49,7 @@ export default function AuthHome() {
 
   const fetchCoupleData = async (userId) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/couple/${userId}`);
+      const response = await fetch(`/api/couple/${userId}`);
       const data = await response.json();
       if (response.ok) {
         setCoupleData(data.couple);
@@ -72,7 +72,7 @@ export default function AuthHome() {
 
   const fetchUserData = async (user1Id, user2Id) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/user/users/${user1Id}/${user2Id}`);
+      const response = await fetch(`/api/user/users/${user1Id}/${user2Id}`);
       const data = await response.json();
       if (response.ok) {
         const userMap = {};
@@ -91,7 +91,7 @@ export default function AuthHome() {
 
   const fetchAllTasks = async (coupleId) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/couple/tasks/${coupleId}`);
+      const response = await fetch(`/api/couple/tasks/${coupleId}`);
       const data = await response.json();
       if (response.ok) {
         setActivities(data.allTasks);
