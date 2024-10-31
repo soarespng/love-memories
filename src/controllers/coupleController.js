@@ -1,7 +1,7 @@
 const supabase = require('../config/supabase');
 
 exports.existUserInCouple = async (req, res) => {
-  const { userId } = req.params;
+  const { userId } = req.query;
 
   try {
     const { data: users, error: userError } = await supabase
@@ -23,7 +23,7 @@ exports.existUserInCouple = async (req, res) => {
 
 // Função para buscar os dados do casal baseado no ID do usuário
 exports.getCoupleData = async (req, res) => {
-  const { userId } = req.params;
+  const { userId } = req.query;
 
   try {
     // Consulta os dados do casal onde o usuário seja user1 ou user2
@@ -46,7 +46,7 @@ exports.getCoupleData = async (req, res) => {
 };
 
 exports.getAllTasks = async (req, res) => {
-  const { coupleId } = req.params;
+  const { coupleId } = req.query;
 
   try {
     const { data: collections, error: collectionError } = await supabase

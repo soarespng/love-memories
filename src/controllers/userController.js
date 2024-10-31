@@ -51,7 +51,7 @@ exports.loginUser = async (req, res) => {
 };
 
 exports.getUserData = async (req, res) => {
-  const { userId } = req.params;
+  const { userId } = req.query;
 
   try {
     const { data: user, error: userError } = await supabase
@@ -72,7 +72,7 @@ exports.getUserData = async (req, res) => {
 
 // Função para obter dados de dois usuários por IDs
 exports.getUsersData = async (req, res) => {
-  const { user1Id, user2Id } = req.params;
+  const { user1Id, user2Id } = req.query;
   
   try {
     const { data: users, error: userError } = await supabase

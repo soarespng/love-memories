@@ -25,6 +25,7 @@ export default function AuthHome() {
       if (typeof window === "undefined") return;
 
       const decodedToken = jwtDecode(token);
+      console.log(decodedToken);
       const currentTime = Math.floor(Date.now() / 1000);
 
       if (decodedToken.exp < currentTime) {
