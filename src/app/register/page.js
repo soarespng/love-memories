@@ -16,7 +16,7 @@ export default function Register() {
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const showAlert = () => {
+  const showSuccessAlert = () => {
     MySwal.fire({
       text: 'Cadastro realizado!',
       toast: true,
@@ -34,10 +34,25 @@ export default function Register() {
     });
   };
 
+  const showErrorAlert = () => {
+    MySwal.fire({
+      text: 'Erro ao realizar cadastro',
+      toast: true,
+      position: 'top-end',
+      icon: 'error',
+      showConfirmButton: false,
+      timer: 3000,
+      customClass: {
+        popup: 'bg-red-500 p-4 rounded-md shadow-lg',
+        title: 'font-bold text-lg',
+      },
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const res = await fetch('http://localhost:3000/api/register', {
+    const res = await fetch('http://localhost:3000/api/user/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -47,9 +62,9 @@ export default function Register() {
 
     const data = await res.json();
     if (res.ok) {
-      showAlert();
+      showSuccessAlert();
     } else {
-      console.error('Error:', data);
+      showErrorAlert()
       setError(data.message || 'Erro ao registrar usuário');
     }
   };
@@ -69,7 +84,6 @@ export default function Register() {
           <div>
             <h2 className="text-1xl font-bold mb-6">Crie sua conta</h2>
           </div>
-          {error && <p className="text-red-500 mb-4">{error}</p>}
           <RegisterForm
             username={username}
             setUsername={setUsername}
@@ -90,7 +104,6 @@ export default function Register() {
               <div>
                 <h2 className="text-3xl font-bold mb-6">Crie sua conta</h2>
               </div>
-              {error && <p className="text-red-500">{error}</p>}
               <RegisterForm
                 username={username}
                 setUsername={setUsername}

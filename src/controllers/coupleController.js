@@ -1,20 +1,19 @@
 const supabase = require('../config/supabase');
 
 exports.existUserInCouple = async (req, res) => {
-  const { id } = req.params;
+  const { userId } = req.params;
 
   try {
     const { data: users, error: userError } = await supabase
-      .from('couple')
+      .from('couples')
       .select('*')
-      .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
-      .single();
+      .or(`user1_id.eq.${userId},user2_id.eq.${userId}`);
 
     if (userError) {
       return res.status(400).json({ error: 'Erro ao buscar dados dos usuários' });
     }
 
-    const isUserInCouple = users.length > 0;
+    const isUserInCouple = users && users.length > 0;
     res.status(200).json({ exists: isUserInCouple });
   } catch (error) {
     console.error('Erro ao buscar dados dos usuários:', error);

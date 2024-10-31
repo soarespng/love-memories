@@ -66,7 +66,7 @@ export default function AuthHome() {
 
   const fetchUserData = async (user1Id, user2Id) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/couple/users/${user1Id}/${user2Id}`);
+      const response = await fetch(`http://localhost:3000/api/user/users/${user1Id}/${user2Id}`);
       const data = await response.json();
       if (response.ok) {
         const userMap = {};

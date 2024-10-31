@@ -12,39 +12,30 @@ const MySwal = withReactContent(Swal);
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isUserInCouple, setIsUserInCouple] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decodedToken = jwtDecode(token);
-        const currentTime = Date.now() / 1000;
-        if (decodedToken.exp < currentTime) {
-          localStorage.removeItem("token");
-          setIsAuthenticated(false);
-        } else {
-          setIsAuthenticated(true);
-        }
-      } catch (error) {
-        console.error("Erro ao decodificar o token:", error);
-        localStorage.removeItem("token");
-        setIsAuthenticated(false);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isAuthenticated) {
+    const validateTokenAndCouple = async () => {
       const token = localStorage.getItem("token");
-      const decodedToken = jwtDecode(token);
-      checkUserInCouple(decodedToken.id);
-    } else {
-      router.push("/");
-    }
-  }, [isAuthenticated, router]);
+      if (token) {
+        try {
+          const decodedToken = jwtDecode(token);
+          const currentTime = Date.now() / 1000;
+
+          if (decodedToken.exp < currentTime) {
+            localStorage.removeItem("token");
+          } else {
+            await checkUserInCouple(decodedToken.id);
+          }
+        } catch (error) {
+          console.error("Erro ao decodificar o token:", error);
+          localStorage.removeItem("token");
+        }
+      }
+    };
+
+    validateTokenAndCouple();
+  }, []);
 
   const showSuccessAlert = () => {
     MySwal.fire({
@@ -61,9 +52,9 @@ export default function LoginPage() {
     });
   };
 
-  const showErrorAlert = () => {
+  const showErrorAlert = (message) => {
     MySwal.fire({
-      text: 'Usuário e/ou senha inválidos',
+      text: message || 'Usuário e/ou senha inválidos',
       toast: true,
       position: 'top-end',
       icon: 'error',
@@ -91,8 +82,8 @@ export default function LoginPage() {
       const data = await res.json();
       if (res.ok) {
         localStorage.setItem("token", data.token);
-        setIsAuthenticated(true);
         showSuccessAlert();
+        await checkUserInCouple(data.user.id);  // Verificar casal após login
       } else {
         showErrorAlert();
       }
@@ -108,20 +99,15 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (data.exists) {
-        setIsUserInCouple(true);
-        setTimeout(() => {
-          router.push("/home");
-        }, 3000);
+        router.push("/home");
       } else {
-        setIsUserInCouple(false);
-        setTimeout(() => {
-          router.push("/sync");
-        }, 3000);
+        router.push("/sync");
       }
-    } catch {
+    } catch (error) {
       console.error("Erro ao verificar associação do usuário:", error);
+      showErrorAlert("Erro ao verificar o status de casal do usuário");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen w-full">

@@ -22,7 +22,8 @@ app.prepare().then(() => {
   //user
   server.post('/api/user/register', userController.registerUser);
   server.post('/api/user/login', userController.loginUser);
-  server.get('/api/user/users/:user1Id/:user2Id', userController.getUserData);
+  server.get('/api/user/:userId', userController.getUserData);
+  server.get('/api/user/users/:user1Id/:user2Id', userController.getUsersData);
 
   //couple
   server.get('/api/couple/checkUserCouple/:userId', coupleController.existUserInCouple);
