@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Home, Calendar, Bell, Settings, User, Plus, LogOut, X } from 'lucide-react';
+import { Home, Image, Settings, User, Plus, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import NewDateModal from '@/components/NewDateModal';
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,7 +26,7 @@ const NavBar = () => {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex flex-col fixed left-0 top-0 h-screen w-64 bg-white shadow-lg">
+      <div className="hidden md:flex flex-col fixed z-20 left-0 top-0 h-screen w-64 bg-white shadow-lg">
         <div className="p-4 border-b">
           <div className="flex items-center space-x-3">
             <User className="w-8 h-8 text-gray-600" />
@@ -39,13 +38,13 @@ const NavBar = () => {
           <ul className="space-y-2">
             <li>
               <a onClick={handleNewDate} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
-              <Plus className="w-5 h-5 text-gray-600" />
-              <span className="text-gray-700">Novo Date</span>
+                <Plus className="w-5 h-5 text-gray-600" />
+                <span className="text-gray-700">Novo Date</span>
               </a>
             </li>
             {menuItems.map((item) => (
               <li key={item.label}>
-                  <a href={item.href} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+                <a href={item.href} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
                   <item.icon className="w-5 h-5 text-gray-600" />
                   <span className="text-gray-700">{item.label}</span>
                 </a>
@@ -71,28 +70,25 @@ const NavBar = () => {
           <a href="/home" className="flex flex-col items-center p-2">
             <Home className="w-6 h-6 text-gray-600" />
           </a>
-          {/* <a href="/history" className="flex flex-col items-center p-2">
-            <Calendar className="w-6 h-6 text-gray-600" />
-          </a> */}
+          <a href="/history" className="flex flex-col items-center p-2">
+            <Image className="w-6 h-6 text-gray-600" />
+          </a>
           <div className="relative -top-5">
             <button
               onClick={handleNewDate}
-              className="flex items-center justify-center w-20 h-20 rounded-full bg-blue-300 text-white shadow-lg hover:bg-blue-400 transition-colors"
+              className="flex items-center justify-center w-20 h-20 rounded-full bg-red-300 text-white shadow-lg"
             >
               <Plus className="w-8 h-8" />
             </button>
           </div>
-          {/* <a href="/notifications" className="flex flex-col items-center p-2">
-            <Bell className="w-6 h-6 text-gray-600" />
-          </a> */}
           <a href="/settings" className="flex flex-col items-center p-2">
             <Settings className="w-6 h-6 text-gray-600" />
           </a>
+          <a onClick={handleLogout} className="flex flex-col items-center p-2">
+            <LogOut className="w-6 h-6 text-gray-600" />
+          </a>
         </div>
       </div>
-
-      {/* New Date Modal */}
-      <NewDateModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </>
   );
 };

@@ -114,9 +114,9 @@ export default function SyncPage() {
     <div className="min-h-screen w-full">
       <div className="lg:hidden flex flex-col min-h-screen bg-white">
         <div className="flex-1 p-6 flex flex-col">
-          <div className="mb-8 p-8 bg-blue-300 rounded-2xl">
+          <div className="mb-8 p-8 bg-red-300 rounded-2xl">
             <img
-              src="https://nrvzuwrimkiqhphdsusa.supabase.co/storage/v1/object/public/home-images/slider-images/Woman%20and%20man%20giving%20each%20other%20high%20five.png"
+              src="/high_five.png"
               alt="High five illustration"
               className="w-full h-full object-cover rounded-xl"
             />

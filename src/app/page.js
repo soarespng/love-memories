@@ -114,15 +114,15 @@ export default function LoginPage() {
       {/* Mobile Layout */}
       <div className="lg:hidden flex flex-col min-h-screen bg-white">
         <div className="flex-1 p-6 flex flex-col">
-          <div className="mb-8 p-8 bg-blue-300 rounded-2xl">
+          <div className="mb-8 p-8 bg-red-300 rounded-2xl">
             <img
-              src="https://nrvzuwrimkiqhphdsusa.supabase.co/storage/v1/object/public/home-images/slider-images/Couple%20on%20a%20dinner%20date.png"
+              src="/dinner_date.png"
               alt="Ilustração de um casal"
               className="w-full h-48 object-cover rounded-xl"
             />
           </div>
-          <h1 className="text-1xl font-bold">Bem-vindo à 4Us</h1>
-          <p className="mb-8">A plataforma de dates para casais.</p>
+          <h1 className="text-1xl font-bold">Bem-vindo à <span className="text-red-300">Love Memories</span></h1>
+          <p className="mb-8">O lugar para planejar e armazenar os seus dates.</p>
           <LoginForm
             email={email}
             setEmail={setEmail}
@@ -139,8 +139,8 @@ export default function LoginPage() {
           <div className="w-1/2 flex items-center justify-center">
             <div className="w-8/12">
               <div>
-                <h2 className="text-3xl font-bold">Bem-vindo à 4Us</h2>
-                <p className="mb-6">A plataforma de atividades e cronogramas divertidos para casais.</p>
+                <h2 className="text-3xl font-bold">Bem-vindo à <span className="text-red-300">Love Memories</span></h2>
+                <p className="mb-6">O lugar para planejar e armazenar os seus dates.</p>
               </div>
               <LoginForm
                 email={email}
@@ -152,10 +152,10 @@ export default function LoginPage() {
             </div>
           </div>
           <div className="w-1/2 flex items-center p-16 justify-center">
-            <div className="h-full bg-blue-300 rounded-2xl w-full overflow-hidden flex flex-col">
+            <div className="h-full bg-red-300 rounded-2xl w-full overflow-hidden flex flex-col">
               <div className="flex-grow flex items-center justify-center px-8">
                 <img
-                  src="https://nrvzuwrimkiqhphdsusa.supabase.co/storage/v1/object/public/home-images/slider-images/Couple%20on%20a%20dinner%20date.png"
+                  src="/dinner_date.png"
                   alt="Ilustração de um casal"
                   className="w-fit h-auto"
                 />

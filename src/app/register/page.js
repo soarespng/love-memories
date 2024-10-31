@@ -74,9 +74,9 @@ export default function Register() {
       {/* mobile */}
       <div className="lg:hidden flex flex-col min-h-screen bg-white">
         <div className="flex-1 p-6 flex flex-col">
-          <div className="mb-8 p-8 bg-blue-300 rounded-2xl">
+          <div className="mb-8 p-8 bg-red-300 rounded-2xl">
             <img
-              src="https://nrvzuwrimkiqhphdsusa.supabase.co/storage/v1/object/public/home-images/slider-images/Man%20puts%20flower%20in%20woman's%20hair.png"
+              src="/flower_hair.png"
               alt="Ilustração de um casal"
               className="w-full h-48 object-cover rounded-xl"
             />
@@ -116,10 +116,10 @@ export default function Register() {
             </div>
           </div>
           <div className="w-1/2 flex items-center p-16 justify-center">
-            <div className="h-full bg-blue-300 rounded-2xl w-full overflow-hidden flex flex-col">
+            <div className="h-full bg-red-300 rounded-2xl w-full overflow-hidden flex flex-col">
               <div className="flex-grow flex items-center justify-center px-8">
                 <img
-                  src="https://nrvzuwrimkiqhphdsusa.supabase.co/storage/v1/object/public/home-images/slider-images/Man%20puts%20flower%20in%20woman's%20hair.png"
+                  src="/flower_hair.png"
                   alt="Ilustração de um casal"
                   className="w-fit h-auto"
                 />
