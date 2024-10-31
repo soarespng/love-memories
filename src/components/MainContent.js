@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { ImagePlus } from 'lucide-react';
 
-const MainContent = ({ activities, coupleData, userData, completedTasksCount, daysTogether }) => {
+const MainContent = ({ activities, coupleData, userData, daysTogether }) => {
   const [selectedTask, setSelectedTask] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [rating, setRating] = useState(0);
@@ -63,7 +63,7 @@ const MainContent = ({ activities, coupleData, userData, completedTasksCount, da
             <div className="flex items-center justify-center flex-col">
               <img src={coupleData.image_url} className="w-48 h-48 bg-blue-300 rounded-lg mb-4" />
               <h2 className="text-xl font-semibold">{`${userData.user1} & ${userData.user2}`}</h2>
-              <p className="text-gray-600 text-sm">{daysTogether} dias juntos | {completedTasksCount} dates concluídos</p>
+              <p className="text-gray-600 text-sm">{daysTogether} dias juntos | dates concluídos</p>
             </div>
           </div>
 
@@ -80,7 +80,7 @@ const MainContent = ({ activities, coupleData, userData, completedTasksCount, da
 
           {/* Activities List */}
           <div className="space-y-4">
-            {activities.length > 0 ? (
+            {activities && activities.length > 0 ? (
               activities
                 .filter((activity) => activity.status === "pendente")
                 .map((activity) => (

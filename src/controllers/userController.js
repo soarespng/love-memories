@@ -3,24 +3,11 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const supabase = require('../config/supabase');
 
-// Função para criptografar o código de sincronização
-function encryptSyncCode(syncCode, secretKey) {
-  const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(secretKey), iv);
-  let encrypted = cipher.update(syncCode);
-  encrypted = Buffer.concat([encrypted, cipher.final()]);
-  return `${iv.toString('hex')}:${encrypted.toString('hex')}`;
-}
-
-// Função para registrar o usuário
 exports.registerUser = async (req, res) => {
   const { username, email, password } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // Geração e criptografia do código de sincronização
   const syncCode = crypto.randomBytes(3).toString('hex');
-  const secretKey = process.env.AES_SECRET;
-  const encryptedSyncCode = encryptSyncCode(syncCode, secretKey);
 
   const { data, error } = await supabase
     .from('users')
@@ -29,7 +16,7 @@ exports.registerUser = async (req, res) => {
         name: username,
         email,
         password: hashedPassword,
-        sync_code: encryptedSyncCode,
+        sync_code: syncCode,
         modify_at: new Date()
       }
     ]);
@@ -56,14 +43,13 @@ exports.loginUser = async (req, res) => {
 
   const token = jwt.sign(
     { id: users.id, email: users.email },
-    process.env.JWT_SECRET,
+    process.env.NEXT_PUBLIC_JWT_SECRET,
     { expiresIn: '1h' }
   );
 
   res.status(200).json({ token, user: { id: users.id, email: users.email } });
 };
 
-// Função para obter dados do usuário por ID
 exports.getUserData = async (req, res) => {
   const { userId } = req.params;
 
@@ -87,7 +73,7 @@ exports.getUserData = async (req, res) => {
 // Função para obter dados de dois usuários por IDs
 exports.getUsersData = async (req, res) => {
   const { user1Id, user2Id } = req.params;
-
+  
   try {
     const { data: users, error: userError } = await supabase
       .from('users')
@@ -97,10 +83,37 @@ exports.getUsersData = async (req, res) => {
     if (userError) {
       return res.status(400).json({ error: 'Erro ao buscar dados dos usuários' });
     }
-
     res.status(200).json({ users });
   } catch (error) {
     console.error('Erro ao buscar dados dos usuários:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+};
+
+// Função para vincular dois usuários
+exports.linkUsers = async (req, res) => {
+  const { userCurrentId, syncCode } = req.body;
+
+  try {
+    const { data: user, error: errorUser } = await supabase
+      .from('users')
+      .select('id')
+      .eq('sync_code', syncCode)
+      .single();
+
+    if (errorUser || !user) return res.status(400).json({ error: 'User not found' });
+
+    const { data, error } = await supabase
+      .from('couples')
+      .insert([{ user1_id: userCurrentId, user2_id: user.id }]);
+
+    if (error) {
+      return res.status(400).json({ error: 'Failed to link users' });
+    }
+
+    res.status(200).json({ message: 'Users linked successfully', couple: data });
+  } catch (error) {
+    console.error('Error linking users:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 };

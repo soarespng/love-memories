@@ -22,6 +22,7 @@ app.prepare().then(() => {
   //user
   server.post('/api/user/register', userController.registerUser);
   server.post('/api/user/login', userController.loginUser);
+  server.post('/api/user/link', userController.linkUsers);
   server.get('/api/user/:userId', userController.getUserData);
   server.get('/api/user/users/:user1Id/:user2Id', userController.getUsersData);
 
@@ -29,7 +30,7 @@ app.prepare().then(() => {
   server.get('/api/couple/checkUserCouple/:userId', coupleController.existUserInCouple);
   server.get('/api/couple/:userId', coupleController.getCoupleData);
   server.get('/api/couple/tasks/:coupleId', coupleController.getAllTasks);
-  server.get('/api/couple/tasks/completed/:coupleId', coupleController.getCompletedTasksCount);
+  // server.get('/api/couple/tasks/completed/:coupleId', coupleController.getCompletedTasksCount);
 
   // Todas as outras rotas tratadas pelo Next.js
   server.all('*', (req, res) => {

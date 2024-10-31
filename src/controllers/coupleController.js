@@ -49,77 +49,71 @@ exports.getAllTasks = async (req, res) => {
   const { coupleId } = req.params;
 
   try {
-    const { data: lists, error: listError } = await supabase
-      .from('lists')
+    const { data: collections, error: collectionError } = await supabase
+      .from('collections')
       .select('*')
       .eq('couple_id', coupleId);
 
-    if (listError || !lists) {
+    if (collectionError || !collections) {
       return res.status(400).json({ error: 'Erro ao buscar listas de tarefas' });
     }
 
-    // Criar um array para armazenar todas as tarefas
-    const allTasks = [];
+    const allDates = [];
 
-    // Buscar tarefas para cada lista encontrada
-    for (const list of lists) {
-      const { data: tasks, error: tasksError } = await supabase
-        .from('tasks')
+    for (const collection of collections) {
+      const { data: dates, error: datesError } = await supabase
+        .from('dates')
         .select('*')
-        .eq('list_id', list.id);
+        .eq('collection_id', collection.id);
 
-      if (tasksError) {
+      if (datesError) {
         return res.status(400).json({ error: 'Erro ao buscar tarefas da lista' });
       }
 
-      // Adicionar tarefas à lista de todas as tarefas
-      allTasks.push(...tasks);
+      allDates.push(...dates);
     }
 
-    // Retornar todas as tarefas
-    res.status(200).json({ allTasks });
+    res.status(200).json({ allDates });
   } catch (error) {
     console.error('Erro ao buscar tarefas:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 }
 
-// Função para buscar o número de tarefas concluídas pelo casal
-exports.getCompletedTasksCount = async (req, res) => {
-  const { coupleId } = req.params;
+// exports.getCompletedTasksCount = async (req, res) => {
+//   const { coupleId } = req.params;
 
-  try {
-    // Busca as listas de tarefas do casal
-    const { data: lists, error: listError } = await supabase
-      .from('lists')
-      .select('id')
-      .eq('couple_id', coupleId);
+//   try {
+//     const { data: collections, error: listError } = await supabase
+//       .from('collections')
+//       .select('id')
+//       .eq('couple_id', coupleId);
 
-    if (listError) {
-      return res.status(400).json({ error: 'Erro ao buscar listas de tarefas' });
-    }
+//     if (listError) {
+//       return res.status(400).json({ error: 'Erro ao buscar listas de tarefas' });
+//     }
 
-    if (lists.length === 0) {
-      return res.status(200).json({ completedTasksCount: 0 });
-    }
+//     if (collections.length === 0) {
+//       return res.status(200).json({ completedTasksCount: 0 });
+//     }
 
-    const listIds = lists.map((list) => list.id);
+//     const listIds = collections.map((list) => list.id);
 
-    // Busca as tarefas concluídas com base nos IDs das listas
-    const { data: tasks, error: taskError } = await supabase
-      .from('tasks')
-      .select('status')
-      .in('list_id', listIds);
+//     // Busca as tarefas concluídas com base nos IDs das listas
+//     const { data: tasks, error: taskError } = await supabase
+//       .from('tasks')
+//       .select('status')
+//       .in('list_id', listIds);
 
-    if (taskError) {
-      return res.status(400).json({ error: 'Erro ao buscar tarefas' });
-    }
+//     if (taskError) {
+//       return res.status(400).json({ error: 'Erro ao buscar tarefas' });
+//     }
 
-    const completedTasksCount = tasks.filter((task) => task.status === 'concluída').length;
+//     const completedTasksCount = tasks.filter((task) => task.status === 'concluída').length;
 
-    res.status(200).json({ completedTasksCount });
-  } catch (error) {
-    console.error('Erro ao buscar tarefas concluídas:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
-  }
-};
+//     res.status(200).json({ completedTasksCount });
+//   } catch (error) {
+//     console.error('Erro ao buscar tarefas concluídas:', error);
+//     res.status(500).json({ error: 'Erro interno do servidor' });
+//   }
+// };

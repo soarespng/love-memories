@@ -11,7 +11,6 @@ export default function AuthHome() {
   const [activities, setActivities] = useState([]);
   const [coupleData, setCoupleData] = useState(null);
   const [userData, setUserData] = useState({ user1: null, user2: null });
-  const [completedTasksCount, setCompletedTasksCount] = useState(0);
   const [daysTogether, setDaysTogether] = useState(0);
   const router = useRouter();
 
@@ -23,8 +22,10 @@ export default function AuthHome() {
     }
 
     try {
+      if (typeof window === "undefined") return;
+
       const decodedToken = jwtDecode(token);
-      const currentTime = Date.now() / 1000;
+      const currentTime = Math.floor(Date.now() / 1000);
 
       if (decodedToken.exp < currentTime) {
         localStorage.removeItem("token");
@@ -52,10 +53,8 @@ export default function AuthHome() {
       const data = await response.json();
       if (response.ok) {
         setCoupleData(data.couple);
-        setDaysTogether(Math.floor((new Date() - new Date(data.couple.since)) / (1000 * 60 * 60 * 24)));
         fetchUserData(data.couple.user1_id, data.couple.user2_id);
         fetchAllTasks(data.couple.id);
-        fetchCompletedTasks(data.couple.id);
       } else {
         console.error("Erro ao buscar dados do casal");
       }
@@ -64,6 +63,13 @@ export default function AuthHome() {
     }
   };
 
+  useEffect(() => {
+    if (coupleData?.since) {
+      const days = Math.floor((new Date() - new Date(coupleData.since)) / (1000 * 60 * 60 * 24));
+      setDaysTogether(days);
+    }
+  }, [coupleData?.since]);
+
   const fetchUserData = async (user1Id, user2Id) => {
     try {
       const response = await fetch(`http://localhost:3000/api/user/users/${user1Id}/${user2Id}`);
@@ -71,7 +77,7 @@ export default function AuthHome() {
       if (response.ok) {
         const userMap = {};
         data.users.forEach((user) => {
-          const firstName = user.username.split(" ")[0];
+          const firstName = user.name.split(" ")[0];
           userMap[user.id] = firstName;
         });
         setUserData({ user1: userMap[user1Id], user2: userMap[user2Id] });
@@ -97,29 +103,14 @@ export default function AuthHome() {
     }
   };
 
-  const fetchCompletedTasks = async (coupleId) => {
-    try {
-      const response = await fetch(`http://localhost:3000/api/couple/tasks/completed/${coupleId}`);
-      const data = await response.json();
-      if (response.ok) {
-        setCompletedTasksCount(data.completedTasksCount);
-      } else {
-        console.error("Erro ao buscar tarefas concluídas");
-      }
-    } catch (error) {
-      console.error("Erro ao buscar tarefas concluídas:", error);
-    }
-  };
-
   return (
     <>
       <NavBar />
       <MainContent 
-      activities={activities}
-      coupleData={coupleData}
-      userData={userData}
-      completedTasksCount={completedTasksCount}
-      daysTogether={daysTogether}
+        activities={activities}
+        coupleData={coupleData}
+        userData={userData}
+        daysTogether={daysTogether}
       />
     </>
   );

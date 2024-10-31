@@ -97,7 +97,7 @@ export default function Register() {
       </div>
 
       {/* desktop */}
-      <div className="flex w-full justify-center items-center">
+      <div className="hidden lg:flex w-full justify-center items-center">
         <div className="flex h-screen w-full">
           <div className="w-1/2 flex items-center justify-center">
             <div className="w-8/12">
@@ -119,7 +119,7 @@ export default function Register() {
             <div className="h-full bg-blue-300 rounded-2xl w-full overflow-hidden flex flex-col">
               <div className="flex-grow flex items-center justify-center px-8">
                 <img
-                  src="https://nrvzuwrimkiqhphdsusa.supabase.co/storage/v1/object/public/home-images/slider-images/Woman%20and%20man%20giving%20each%20other%20high%20five.png"
+                  src="https://nrvzuwrimkiqhphdsusa.supabase.co/storage/v1/object/public/home-images/slider-images/Man%20puts%20flower%20in%20woman's%20hair.png"
                   alt="Ilustração de um casal"
                   className="w-fit h-auto"
                 />

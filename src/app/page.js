@@ -16,11 +16,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     const validateTokenAndCouple = async () => {
+      if (typeof window === "undefined") return;
+      
       const token = localStorage.getItem("token");
       if (token) {
         try {
           const decodedToken = jwtDecode(token);
-          const currentTime = Date.now() / 1000;
+          const currentTime = Math.floor(Date.now() / 1000);
 
           if (decodedToken.exp < currentTime) {
             localStorage.removeItem("token");
@@ -83,7 +85,7 @@ export default function LoginPage() {
       if (res.ok) {
         localStorage.setItem("token", data.token);
         showSuccessAlert();
-        await checkUserInCouple(data.user.id);  // Verificar casal após login
+        await checkUserInCouple(data.user.id);
       } else {
         showErrorAlert();
       }

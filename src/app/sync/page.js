@@ -1,17 +1,60 @@
 "use client";
-import { useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
 
-export default function SyncPage({ user1Id }) {
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+
+const MySwal = withReactContent(Swal);
+
+export default function SyncPage() {
+  const router = useRouter();
   const [codeArray, setCodeArray] = useState([]);
+  const [inputCode, setInputCode] = useState('');
+
+  const showSuccessAlert = () => {
+    MySwal.fire({
+      text: 'Vinculados com sucesso',
+      toast: true,
+      position: 'top-end',
+      icon: 'success',
+      showConfirmButton: false,
+      timer: 3000,
+      customClass: {
+        popup: 'bg-green-500 p-4 rounded-md shadow-lg',
+        title: 'font-bold text-lg',
+      },
+      didClose: () => {
+        router.push('/home');
+      },
+    });
+  };
+
+  const showErrorAlert = (message) => {
+    MySwal.fire({
+      text: message || 'Erro ao vincular o casal',
+      toast: true,
+      position: 'top-end',
+      icon: 'error',
+      showConfirmButton: false,
+      timer: 3000,
+      customClass: {
+        popup: 'bg-red-500 p-4 rounded-md shadow-lg',
+        title: 'font-bold text-lg',
+      },
+    });
+  };
 
   useEffect(() => {
     const validateToken = async () => {
+      if (typeof window === "undefined") return;
+
       const token = localStorage.getItem("token");
       if (token) {
         try {
           const decodedToken = jwtDecode(token);
-          const currentTime = Date.now() / 1000;
+          const currentTime = Math.floor(Date.now() / 1000);
 
           if (decodedToken.exp < currentTime) {
             localStorage.removeItem("token");
@@ -33,8 +76,8 @@ export default function SyncPage({ user1Id }) {
       const response = await fetch(`http://localhost:3000/api/user/${userId}`);
       const data = await response.json();
       if (response.ok) {
-        const code = data.user.sync_code;
-        setCodeArray(code.split(''));
+        const userCode = data.user.sync_code;
+        setCodeArray(userCode.split(''));
       } else {
         console.error("Erro ao buscar dados do usuário");
       }
@@ -43,9 +86,32 @@ export default function SyncPage({ user1Id }) {
     }
   };
 
+  const handleSync = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('http://localhost:3000/api/user/link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userCurrentId: jwtDecode(localStorage.getItem("token")).id,
+          syncCode: inputCode
+        })
+      });
+
+      if (response.ok) {
+        showSuccessAlert();
+      } else {
+        showErrorAlert();
+      }
+    } catch (error) {
+      showErrorAlert();
+    }
+  };
+
   return (
     <div className="min-h-screen w-full">
-      {/* Mobile Layout */}
       <div className="lg:hidden flex flex-col min-h-screen bg-white">
         <div className="flex-1 p-6 flex flex-col">
           <div className="mb-8 p-8 bg-blue-300 rounded-2xl">
@@ -58,13 +124,12 @@ export default function SyncPage({ user1Id }) {
 
           <div>
             <h2 className="text-2xl font-bold mb-2">Seu código:</h2>
-            <p className="text-sm text-gray-700 mb-6">
+            <p className="text-sm text-gray-700 mb-2">
               Mande este código de verificação para seu parceiro
             </p>
           </div>
 
-          {/* Code boxes */}
-          <div className="flex gap-2 mb-6">
+          <div className="flex gap-2 mb-2">
             {codeArray.map((digit, index) => (
               <div
                 key={index}
@@ -75,7 +140,6 @@ export default function SyncPage({ user1Id }) {
             ))}
           </div>
 
-          {/* Divider */}
           <div className="mt-6 mb-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -87,15 +151,17 @@ export default function SyncPage({ user1Id }) {
             </div>
           </div>
 
-          {/* Input form */}
-          <form className="space-y-4 w-full">
+          <form onSubmit={handleSync} className="space-y-4 w-full">
             <div>
               <label className="block text-sm text-gray-700 mb-1">
                 Insira o código:
               </label>
               <input
-                type="number"
+                type="text"
+                value={inputCode}
+                onChange={(e) => setInputCode(e.target.value)}
                 className="w-full p-3 rounded-lg border border-gray-200"
+                placeholder="Enter sync code"
               />
             </div>
             <button
@@ -107,7 +173,7 @@ export default function SyncPage({ user1Id }) {
             <button
               type="button"
               className="w-full bg-red-700 text-white p-3 rounded-lg"
-              onClick={() => { localStorage.removeItem("token"); }}
+              onClick={() => localStorage.removeItem("token")}
             >
               Voltar
             </button>
