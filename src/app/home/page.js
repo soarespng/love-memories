@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { jwtDecode } from "jwt-decode";
+import { jwtDecode } from "jwt-decode"; // Remova o uso de chaves para jwtDecode, pois ele não é um default export
 import NavBar from "@/components/Navbar";
 import MainContent from "@/components/MainContent";
 
 export default function AuthHome() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Estado para verificar carregamento da autenticação
   const [activities, setActivities] = useState([]);
   const [coupleData, setCoupleData] = useState(null);
   const [userData, setUserData] = useState({ user1: null, user2: null });
@@ -15,38 +16,44 @@ export default function AuthHome() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/");
-      return;
-    }
+    const validateToken = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        router.push("/");
+        return;
+      }
 
-    try {
-      if (typeof window === "undefined") return;
+      try {
+        const decodedToken = jwtDecode(token);
+        const currentTime = Math.floor(Date.now() / 1000);
 
-      const decodedToken = jwtDecode(token);
-      console.log(decodedToken);
-      const currentTime = Math.floor(Date.now() / 1000);
-
-      if (decodedToken.exp < currentTime) {
+        if (decodedToken.exp < currentTime) {
+          console.log("Token expirado");
+          localStorage.removeItem("token");
+          router.push("/");
+        } else {
+          console.log("Autenticado");
+          setIsAuthenticated(true);
+          await fetchCoupleData(decodedToken.id);
+        }
+      } catch (error) {
+        console.error("Erro ao decodificar o token:", error);
         localStorage.removeItem("token");
         router.push("/");
-      } else {
-        setIsAuthenticated(true);
-        fetchCoupleData(decodedToken.id);
+      } finally {
+        setIsLoading(false); // Marca o fim da verificação de autenticação
       }
-    } catch (error) {
-      console.error("Error decoding token:", error);
-      localStorage.removeItem("token");
-      router.push("/");
-    }
+    };
+
+    validateToken();
   }, [router]);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    // Redireciona somente após a autenticação ter sido verificada
+    if (!isLoading && !isAuthenticated) {
       router.push("/");
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isLoading, router]);
 
   const fetchCoupleData = async (userId) => {
     try {
@@ -103,6 +110,11 @@ export default function AuthHome() {
       console.error("Erro ao buscar tarefas:", error);
     }
   };
+
+  // Retorna nulo enquanto a verificação de autenticação está em progresso
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <>
