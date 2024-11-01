@@ -35,6 +35,7 @@ const ModalActions = ({ onClose, onSubmit }) => (
     </button>
     <button
       type="submit"
+      onClick={onSubmit}
       className="flex-1 py-3 px-4 rounded-xl bg-gray-100 text-gray-900 font-medium hover:bg-gray-200 focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:outline-none transition-colors"
     >
       Salvar

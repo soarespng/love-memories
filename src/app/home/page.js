@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { jwtDecode } from "jwt-decode"; // Remova o uso de chaves para jwtDecode, pois ele não é um default export
+import { jwtDecode } from "jwt-decode";
 import NavBar from "@/components/Navbar";
 import MainContent from "@/components/MainContent";
 
 export default function AuthHome() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Estado para verificar carregamento da autenticação
+  const [isLoading, setIsLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false); // Novo estado para verificar se os dados foram carregados
   const [activities, setActivities] = useState([]);
   const [coupleData, setCoupleData] = useState(null);
   const [userData, setUserData] = useState({ user1: null, user2: null });
@@ -28,11 +29,9 @@ export default function AuthHome() {
         const currentTime = Math.floor(Date.now() / 1000);
 
         if (decodedToken.exp < currentTime) {
-          console.log("Token expirado");
           localStorage.removeItem("token");
           router.push("/");
         } else {
-          console.log("Autenticado");
           setIsAuthenticated(true);
           await fetchCoupleData(decodedToken.id);
         }
@@ -41,7 +40,7 @@ export default function AuthHome() {
         localStorage.removeItem("token");
         router.push("/");
       } finally {
-        setIsLoading(false); // Marca o fim da verificação de autenticação
+        setIsLoading(false);
       }
     };
 
@@ -49,7 +48,6 @@ export default function AuthHome() {
   }, [router]);
 
   useEffect(() => {
-    // Redireciona somente após a autenticação ter sido verificada
     if (!isLoading && !isAuthenticated) {
       router.push("/");
     }
@@ -61,8 +59,9 @@ export default function AuthHome() {
       const data = await response.json();
       if (response.ok) {
         setCoupleData(data.couple);
-        fetchUserData(data.couple.user1_id, data.couple.user2_id);
-        fetchAllTasks(data.couple.id);
+        await fetchUserData(data.couple.user1_id, data.couple.user2_id);
+        await fetchAllDates(data.couple.id);
+        setDataLoaded(true);
       } else {
         console.error("Erro ao buscar dados do casal");
       }
@@ -97,12 +96,12 @@ export default function AuthHome() {
     }
   };
 
-  const fetchAllTasks = async (coupleId) => {
+  const fetchAllDates = async (coupleId) => {
     try {
-      const response = await fetch(`/api/couple/tasks/${coupleId}`);
+      const response = await fetch(`/api/couple/dates/${coupleId}`);
       const data = await response.json();
       if (response.ok) {
-        setActivities(data.allTasks);
+        setActivities(data.allDates);
       } else {
         console.error("Erro ao buscar tarefas");
       }
@@ -111,20 +110,22 @@ export default function AuthHome() {
     }
   };
 
-  // Retorna nulo enquanto a verificação de autenticação está em progresso
-  if (isLoading) {
-    return null;
+  if (isLoading || !dataLoaded) {
+    return null; // Retorne null enquanto os dados estão sendo carregados
   }
 
   return (
     <>
       <NavBar />
-      <MainContent 
-        activities={activities}
-        coupleData={coupleData}
-        userData={userData}
-        daysTogether={daysTogether}
-      />
+      <div className="flex">
+        <span className="hidden sm:min-w-64 max-w-64 h-screen"></span>
+        <MainContent
+          activities={activities}
+          coupleData={coupleData}
+          userData={userData}
+          daysTogether={daysTogether}
+        />
+      </div>
     </>
   );
 }
