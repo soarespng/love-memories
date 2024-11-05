@@ -87,7 +87,6 @@ const MainContent = ({ activities, coupleData, userData, daysTogether }) => {
   };
 
   const isLoading = !userData || userData.user1 == null || userData.user2 == null || !coupleData || !activities;
-  console.log(activities);
 
   return (
     <>
