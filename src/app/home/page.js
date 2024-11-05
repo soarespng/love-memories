@@ -111,7 +111,7 @@ export default function AuthHome() {
   };
 
   if (isLoading || !dataLoaded) {
-    return null; // Retorne null enquanto os dados estão sendo carregados
+    return null;
   }
 
   return (

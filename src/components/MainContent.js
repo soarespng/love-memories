@@ -1,13 +1,17 @@
 import { useState, useRef } from "react";
 import { ImagePlus } from 'lucide-react';
+import { BaseModal, FormField, ModalActions, ImageUpload } from '@/components/Modals';
+import StarRating from '@/components/StarRating'; // Vamos criar este componente para a avaliação em estrelas
 
 const MainContent = ({ activities, coupleData, userData, daysTogether }) => {
   const fileInputRef = useRef(null);
   const [selectedTask, setSelectedTask] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [rating, setRating] = useState(0);
   const [description, setDescription] = useState('');
   const [images, setImages] = useState([]);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   const handleImageClick = () => {
     fileInputRef.current?.click();
@@ -15,14 +19,76 @@ const MainContent = ({ activities, coupleData, userData, daysTogether }) => {
 
   const handleTaskClick = (activity) => {
     setSelectedTask(activity);
-    setIsModalOpen(true);
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirmClose = () => {
+    setIsConfirmModalOpen(false);
+    setSelectedTask(null);
+  };
+
+  const handleConfirmYes = () => {
+    setIsConfirmModalOpen(false);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleDetailsClose = () => {
+    setIsDetailsModalOpen(false);
+  };
+
+  const handleSaveDetails = async () => {
+    try {
+      const date_img = await UploadImage(selectedTask.id, selectedTask.collection_id, images[0]);
+
+      const response = await fetch('/api/date/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ date_id: selectedTask.id, rating, description, date_img: date_img }),
+      });
+
+      const data = await response.json();
+    } catch {
+      throw new Error(data.message || 'Erro ao finalizar date');
+    }
+
+    setIsDetailsModalOpen(false);
+    setSelectedTask(null);
     setRating(0);
     setDescription('');
     setImages([]);
+    setPreviewUrl(null);
+  };
+
+  const UploadImage = async (task_id, collection_id, file) => {
+    try {
+      const formData = new FormData();
+      formData.append('task_id', task_id);
+      formData.append('collection_id', collection_id);
+      formData.append('file', file);
+
+
+      const response = await fetch('/api/date/uploadImage', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Erro ao fazer o upload da imagem');
+      }
+
+      return data.public_url;
+    } catch (error) {
+      console.error(error.message);
+    }
   };
 
   const isLoading = !userData || userData.user1 == null || userData.user2 == null || !coupleData || !activities;
   console.log(activities);
+
   return (
     <>
       {isLoading ? (
@@ -54,7 +120,7 @@ const MainContent = ({ activities, coupleData, userData, daysTogether }) => {
                     <span className="mt-2 text-sm text-gray-500 font-medium">Adicionar imagem do casal</span>
                   </div>
                 )}
-                <h2 className="text-xl font-semibold mt-4">{`${userData.user1} ❤️ ${userData.user2}`}</h2>
+                <h2 className="text-xl font-semibold mt-4">{`${userData.user1} & ${userData.user2}`}</h2>
                 <p className="text-gray-600 text-sm">{daysTogether} dias juntos | dates concluídos</p>
               </div>
             </div>
@@ -70,9 +136,10 @@ const MainContent = ({ activities, coupleData, userData, daysTogether }) => {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 mb-24 sm:mb-0">
               {activities.length > 0 ? (
                 activities
+                  .filter((activity) => activity.date_finished === false)
                   .map((activity) => (
                     <div
                       key={activity.id}
@@ -92,12 +159,55 @@ const MainContent = ({ activities, coupleData, userData, daysTogether }) => {
                     </div>
                   ))
               ) : (
-                <p className="text-center text-gray-500">Nenhuma atividade encontrada</p>
+                <p className="text-center text-gray-500">Nenhum date encontrado</p>
               )}
             </div>
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <BaseModal isOpen={isConfirmModalOpen} onClose={handleConfirmClose} title="Deseja concluir o date?">
+        <ModalActions onClose={handleConfirmClose} onSubmit={handleConfirmYes} desagreeMessage={'Não'} agreeMessage={'Sim'} />
+      </BaseModal>
+
+      {/* Details Modal */}
+      <BaseModal isOpen={isDetailsModalOpen} onClose={handleDetailsClose} title="Como foi o date?">
+        <FormField label="Imagem">
+          <ImageUpload
+            previewUrl={previewUrl}
+            onImageClick={handleImageClick}
+            fileInputRef={fileInputRef}
+          />
+          <input
+            required
+            type="file"
+            ref={fileInputRef}
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (file) {
+                const url = URL.createObjectURL(file);
+                setPreviewUrl(url);
+                setImages([file]);
+              }
+            }}
+          />
+        </FormField>
+        <FormField label="Avaliação">
+          <StarRating rating={rating} onRatingChange={setRating} />
+        </FormField>
+        <FormField label="Descrição">
+          <textarea
+            required
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full border rounded-lg p-2 resize-none"
+            rows="4"
+          />
+        </FormField>
+        <ModalActions onClose={handleDetailsClose} onSubmit={handleSaveDetails} agreeMessage={'Salvar'} desagreeMessage={'Cancelar'} />
+      </BaseModal>
     </>
   );
 };

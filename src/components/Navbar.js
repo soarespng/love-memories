@@ -92,7 +92,6 @@ const NavBar = () => {
 
   const handleSaveDate = async (e) => {
     e.preventDefault();
-    console.log(JSON.stringify(formData));
     try {
       const response = await fetch('/api/date/new', {
         method: 'POST',
@@ -108,7 +107,11 @@ const NavBar = () => {
 
       setIsOpen(false);
       setFormData({ title: '', collectionId: '' });
-      window.location.href = '/home';
+      
+      useEffect(() => {
+        const decodedToken = jwtDecode(token);
+        fetchCoupleData(decodedToken.id);
+      });
     } catch (error) {
       console.error('Erro ao salvar date:', error);
     }
@@ -151,7 +154,7 @@ const NavBar = () => {
                     onClick={handleNewDate}
                     className="flex items-center w-full space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    <Plus className="w-5 h-5 text-gray-600" />
+                    <Plus className="w-6 h-6 text-gray-600" />
                     <span className="text-gray-700">Novo Date</span>
                   </button>
                 </li>
@@ -160,7 +163,7 @@ const NavBar = () => {
                     href="/home"
                     className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    <Home className="w-5 h-5 text-gray-600" />
+                    <Home className="w-6 h-6 text-gray-600" />
                     <span className="text-gray-700">Home</span>
                   </a>
                 </li>
@@ -169,7 +172,16 @@ const NavBar = () => {
                     href="/settings"
                     className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    <Settings className="w-5 h-5 text-gray-600" />
+                    <Image className="w-6 h-6 text-gray-600" />
+                    <span className="text-gray-700">Galeria</span>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/settings"
+                    className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <Settings className="w-6 h-6 text-gray-600" />
                     <span className="text-gray-700">Configurações</span>
                   </a>
                 </li>
@@ -181,7 +193,7 @@ const NavBar = () => {
                 onClick={handleLogout}
                 className="flex items-center space-x-3 w-full p-3 rounded-lg hover:bg-gray-100 transition-colors text-red-600"
               >
-                <LogOut className="w-5 h-5" />
+                <LogOut className="w-6 h-6" />
                 <span>Sair</span>
               </button>
             </div>
@@ -217,7 +229,7 @@ const NavBar = () => {
             </div>
           </div>
           {/* Modal */}
-          <BaseModal isOpen={isOpen} onClose={handleClose} title="Adicionar Novo Date">
+          <BaseModal isOpen={isOpen} onClose={handleClose} title="Novo date">
             <FormField label="Título">
               <input
                 type="text"
@@ -225,7 +237,7 @@ const NavBar = () => {
                 value={formData.title}
                 onChange={handleChange}
                 className="w-full py-2 px-4 border rounded-lg"
-                placeholder="Digite o título"
+                placeholder="Pra onde vamos?"
               />
             </FormField>
 
@@ -245,7 +257,7 @@ const NavBar = () => {
               </select>
             </FormField>
 
-            <ModalActions onClose={handleClose} onSubmit={handleSaveDate} />
+            <ModalActions onClose={handleClose} onSubmit={handleSaveDate} agreeMessage={'Salvar'} desagreeMessage={'Cancelar'}/>
           </BaseModal>
         </>
       )}
