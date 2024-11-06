@@ -1,85 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Home, Image, Settings, User, Plus, LogOut, X, Calendar, Collection, Clock } from 'lucide-react';
+import React, { useState } from 'react';
+import { Home, Image, Settings, User, Plus, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { jwtDecode } from "jwt-decode";
-import { BaseModal, FormField, ModalActions, ImageUpload } from '@/components/Modals';
+import { BaseModal, FormField, ModalActions } from '@/components/Modals';
 
-const NavBar = () => {
+const NavBar = ({ currentUser, collections, setActiveSection, revalidateData }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [userData, setUserData] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [collections, setCollections] = useState([]);
   const [formData, setFormData] = useState({ title: '', collectionId: '' });
   const router = useRouter();
-
-  useEffect(() => {
-    const validateToken = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        router.push("/");
-        return;
-      }
-
-      try {
-        const decodedToken = jwtDecode(token);
-        const currentTime = Math.floor(Date.now() / 1000);
-
-        if (decodedToken.exp < currentTime) {
-          localStorage.removeItem("token");
-          router.push("/");
-        } else {
-          setIsAuthenticated(true);
-          await fetchUserData(decodedToken.id);
-          await fetchCoupleData(decodedToken.id);
-        }
-      } catch (error) {
-        console.error("Erro ao decodificar o token:", error);
-        localStorage.removeItem("token");
-        router.push("/");
-      }
-    };
-
-    validateToken();
-  }, [router]);
-
-  const fetchUserData = async (userId) => {
-    try {
-      const response = await fetch(`/api/user/${userId}`);
-      const data = await response.json();
-
-      if (response.ok) {
-        setUserData(data);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar dados do usuário:', error);
-    }
-  };
-
-  const fetchCoupleData = async (userId) => {
-    try {
-      const response = await fetch(`/api/couple/${userId}`);
-
-      if (response.ok) {
-        const data = await response.json();
-        fetchCollections(data.couple.id);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar coleções:', error);
-    }
-  };
-
-  const fetchCollections = async (coupleId) => {
-    try {
-      const response = await fetch(`/api/collections/${coupleId}`);
-
-      if (response.ok) {
-        const data = await response.json();
-        setCollections(data);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar coleções:', error);
-    }
-  };
 
   const handleNewDate = () => {
     setIsOpen(true);
@@ -107,11 +34,7 @@ const NavBar = () => {
 
       setIsOpen(false);
       setFormData({ title: '', collectionId: '' });
-      
-      useEffect(() => {
-        const decodedToken = jwtDecode(token);
-        fetchCoupleData(decodedToken.id);
-      });
+      revalidateData();
     } catch (error) {
       console.error('Erro ao salvar date:', error);
     }
@@ -127,7 +50,7 @@ const NavBar = () => {
     router.push("/");
   };
 
-  const isLoading = !userData || !collections.collections;
+  const isLoading = !currentUser || !collections.collections;
 
   return (
     <>
@@ -141,7 +64,7 @@ const NavBar = () => {
                 <User className="w-8 h-8 text-gray-600" />
                 <div className="flex flex-col">
                   <span className="font-semibold text-gray-800">
-                    {userData?.user?.name || 'Carregando...'}
+                    {currentUser?.user?.name || 'Carregando...'}
                   </span>
                 </div>
               </div>
@@ -160,8 +83,8 @@ const NavBar = () => {
                 </li>
                 <li>
                   <a
-                    href="/home"
-                    className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors"
+                    onClick={() => setActiveSection("home")}
+                    className="flex items-center w-full space-x-3 p-3 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
                   >
                     <Home className="w-6 h-6 text-gray-600" />
                     <span className="text-gray-700">Home</span>
@@ -169,8 +92,8 @@ const NavBar = () => {
                 </li>
                 <li>
                   <a
-                    href="/settings"
-                    className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors"
+                    onClick={() => setActiveSection("gallery")}
+                    className="flex items-center space-x-3 p-3 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
                   >
                     <Image className="w-6 h-6 text-gray-600" />
                     <span className="text-gray-700">Galeria</span>
@@ -178,8 +101,8 @@ const NavBar = () => {
                 </li>
                 <li>
                   <a
-                    href="/settings"
-                    className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors"
+                    onClick={() => setActiveSection("gallery")}
+                    className="flex items-center space-x-3 p-3 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
                   >
                     <Settings className="w-6 h-6 text-gray-600" />
                     <span className="text-gray-700">Configurações</span>
@@ -199,21 +122,20 @@ const NavBar = () => {
             </div>
           </div>
 
-          {/* Mobile Bottom Navigation */}
           <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t z-30">
             <div className="flex justify-between items-center px-6 py-2">
-              <a href="/home" className="flex flex-col items-center p-2">
+              <a onClick={() => setActiveSection("home")} className="flex flex-col items-center p-2">
                 <Home className="w-6 h-6 text-gray-600" />
                 <span className="text-xs text-gray-600 mt-1">Home</span>
               </a>
-              <a href="/history" className="flex flex-col items-center p-2">
+              <a onClick={() => setActiveSection("gallery")} className="flex flex-col items-center p-2">
                 <Image className="w-6 h-6 text-gray-600" />
                 <span className="text-xs text-gray-600 mt-1">Galeria</span>
               </a>
               <div className="relative -top-5">
                 <button
                   onClick={handleNewDate}
-                  className="flex items-center justify-center w-16 h-16 rounded-full bg-red-300 text-white shadow-lg hover:bg-blue-700 transition-colors"
+                  className="flex items-center justify-center w-16 h-16 rounded-full bg-red-300 text-white shadow-lg"
                 >
                   <Plus className="w-8 h-8" />
                 </button>

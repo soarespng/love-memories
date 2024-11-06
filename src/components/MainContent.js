@@ -1,9 +1,9 @@
 import { useState, useRef } from "react";
 import { ImagePlus } from 'lucide-react';
 import { BaseModal, FormField, ModalActions, ImageUpload } from '@/components/Modals';
-import StarRating from '@/components/StarRating'; // Vamos criar este componente para a avaliação em estrelas
+import StarRating from '@/components/StarRating';
 
-const MainContent = ({ activities, coupleData, userData, daysTogether }) => {
+const MainContent = ({ activities, coupleData, userData, daysTogether, finishedActivities, revalidateData }) => {
   const fileInputRef = useRef(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -59,6 +59,7 @@ const MainContent = ({ activities, coupleData, userData, daysTogether }) => {
     setDescription('');
     setImages([]);
     setPreviewUrl(null);
+    revalidateData();
   };
 
   const UploadImage = async (task_id, collection_id, file) => {
@@ -120,7 +121,7 @@ const MainContent = ({ activities, coupleData, userData, daysTogether }) => {
                   </div>
                 )}
                 <h2 className="text-xl font-semibold mt-4">{`${userData.user1} & ${userData.user2}`}</h2>
-                <p className="text-gray-600 text-sm">{daysTogether} dias juntos | dates concluídos</p>
+                <p className="text-gray-600 text-sm">{daysTogether} dias juntos | {finishedActivities} dates concluídos</p>
               </div>
             </div>
 
@@ -151,7 +152,7 @@ const MainContent = ({ activities, coupleData, userData, daysTogether }) => {
                       </div>
                       <input
                         type="checkbox"
-                        checked={activity.status === "completed"}
+                        checked={activity.date_finished === true}
                         onChange={(e) => e.stopPropagation()}
                         className="w-5 h-5 rounded border-gray-300"
                       />
