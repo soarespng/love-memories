@@ -140,7 +140,7 @@ const NavBar = ({ currentUser, collections, setActiveSection, revalidateData }) 
                   <Plus className="w-8 h-8" />
                 </button>
               </div>
-              <a href="/settings" className="flex flex-col items-center p-2">
+              <a onClick={() => setActiveSection("gallery")} className="flex flex-col items-center p-2">
                 <Settings className="w-6 h-6 text-gray-600" />
                 <span className="text-xs text-gray-600 mt-1">Config</span>
               </a>
