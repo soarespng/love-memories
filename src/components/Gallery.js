@@ -23,9 +23,9 @@ const Gallery = ({ activities }) => {
                                         <h3 className="text-lg font-medium mb-1">{activity.title}</h3>
                                         <p className="text-gray-600 text-lg">{activity.description}</p>
                                     </div>
-                                    <div className="flex h-fit items-center justify-center text-gray-600 text-sm">
-                                        <span className="mr-1 text-lg flex justify-center items-center">{activity.rating}</span>
-                                        <Star size={22} />
+                                    <div className="h-fit flex items-center justify-center text-gray-600 text-sm">
+                                        <span className="mr-1 mt-0.5 text-sm">{activity.rating}</span>
+                                        <Star size={17} />
                                     </div>
                                 </div>
                             </div>

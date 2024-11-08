@@ -76,7 +76,7 @@ const CoupleProfile = ({ coupleData, userData, revalidateCoupleData }) => {
         <div className="min-h-screen w-full bg-gray-50">
             <div className="max-w-3xl mx-auto p-4">
                 <div className="bg-white rounded-lg shadow p-6 mb-4">
-                    <h2 className="text-xl font-semibold text-center">Configurações do Perfil</h2>
+                    <h2 className="text-xl mb-6 font-semibold text-center">Configurações do Perfil</h2>
 
                     <FormField label="Imagem do casal">
                         <div className="flex justify-center">

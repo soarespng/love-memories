@@ -8,6 +8,7 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
   const coupleFileInputRef = useRef(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isCoupleImageModalOpen, setIsCoupleImageModalOpen] = useState(false);
   const [rating, setRating] = useState(0);
@@ -44,6 +45,11 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
     }
   };
 
+  const handleEditTaskClick = (activity) => {
+    setSelectedTask(activity);
+    setIsEditModalOpen(true);
+  };
+
   const handleTaskClick = (activity) => {
     setSelectedTask(activity);
     setIsConfirmModalOpen(true);
@@ -67,7 +73,7 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
   const handleCoupleImageClose = () => {
     setIsCoupleImageModalOpen(false);
     setCouplePreviewUrl(null);
-  }
+  };
 
   const handleSaveDetails = async () => {
     try {
@@ -93,6 +99,31 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
     setDescription('');
     setImages([]);
     setPreviewUrl(null);
+    revalidateData();
+  };
+
+  const saveDateChanges = async (task) => {
+    try {
+      const response = await fetch('/api/date/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: task.id, title: task.title, description: task.description }),
+      });
+      if (!response.ok) throw new Error('Erro ao salvar alterações do date');
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const deleteDate = async (id) => {
+    try {
+      const response = await fetch(`/api/date/delete/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Erro ao excluir date');
+    } catch (error) {
+      console.error(error);
+    }
     revalidateData();
   };
 
@@ -210,7 +241,7 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
                     <div
                       key={activity.id}
                       className="flex items-center space-x-4 p-6 justify-between border rounded-lg bg-white cursor-pointer transition-colors"
-                      onClick={() => handleTaskClick(activity)}
+                      onClick={() => handleEditTaskClick(activity)}
                     >
                       <div>
                         <h3 className="font-medium">{activity.title}</h3>
@@ -219,60 +250,65 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
                       <input
                         type="checkbox"
                         checked={activity.date_finished}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTaskClick(activity);
+                        }}
                         onChange={(e) => e.stopPropagation()}
                         className="w-5 h-5 rounded border-gray-300"
                       />
                     </div>
                   ))
               ) : (
-                <p className="text-center text-gray-500">Nenhum date encontrado</p>
+                <p className="text-gray-500">Nenhum date pendente</p>
               )}
             </div>
           </div>
         </div>
       )}
-      <BaseModal isOpen={isConfirmModalOpen} onClose={handleConfirmClose} title="Deseja concluir o date?">
-        <ModalActions onClose={handleConfirmClose} onSubmit={handleConfirmYes} desagreeMessage="Não" agreeMessage="Sim" />
+      <BaseModal isOpen={isConfirmModalOpen} onClose={handleConfirmClose} title="Finalizar date?">
+        <p>Você tem certeza de que deseja finalizar o date?</p>
+        <ModalActions onClose={handleConfirmClose} onSubmit={handleConfirmYes} />
       </BaseModal>
-      <BaseModal isOpen={isDetailsModalOpen} onClose={handleDetailsClose} title="Como foi o date?">
-        <FormField label="Imagem">
-          <ImageUpload
-            previewUrl={previewUrl}
-            onImageClick={() => fileInputRef.current?.click()}
-            fileInputRef={fileInputRef}
-          />
-          <input
-            required
-            type="file"
-            ref={fileInputRef}
-            style={{ display: "none" }}
-            onChange={(e) => {
-              const file = e.target.files[0];
-              if (file) {
-                const url = URL.createObjectURL(file);
-                setPreviewUrl(url);
-                setImages([file]);
-              }
-            }}
-          />
-        </FormField>
+      <BaseModal isOpen={isDetailsModalOpen} onClose={handleDetailsClose} title="Detalhes do date">
         <FormField label="Avaliação">
           <StarRating rating={rating} onRatingChange={setRating} />
         </FormField>
         <FormField label="Descrição">
-          <textarea
-            required
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full border rounded-lg p-2 resize-none"
-            rows="4"
-          />
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border rounded-lg p-2 resize-none" rows="4" />
+        </FormField>
+        <FormField label="Imagem">
+          <ImageUpload previewUrl={previewUrl} onImageClick={() => fileInputRef.current?.click()} fileInputRef={fileInputRef} onImageChange={(e) => {
+            const file = e.target.files[0];
+            if (file) {
+              const url = URL.createObjectURL(file);
+              setPreviewUrl(url);
+              setImages([file]);
+            }
+          }} />
         </FormField>
         <ModalActions onClose={handleDetailsClose} onSubmit={handleSaveDetails} agreeMessage="Salvar" desagreeMessage="Cancelar" />
       </BaseModal>
-      <BaseModal isOpen={isCoupleImageModalOpen} onClose={() => setIsCoupleImageModalOpen(false)} title="Deseja salvar a imagem?">
-        <img src={couplePreviewUrl} alt="Pré-visualização do casal" className="w-full max-h-60 object-cover rounded-lg mb-4" />
-        <ModalActions onClose={handleCoupleImageClose} onSubmit={handleSaveCoupleImage} desagreeMessage="Cancelar" agreeMessage="Salvar" />
+      <BaseModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Editar Date">
+        <FormField label="Título">
+          <input type="text" value={selectedTask?.title || ''} onChange={(e) => setSelectedTask({ ...selectedTask, title: e.target.value })} className="w-full border rounded-lg p-2" />
+        </FormField>
+        <FormField label="Descrição">
+          <textarea value={selectedTask?.description || ''} onChange={(e) => setSelectedTask({ ...selectedTask, description: e.target.value })} className="w-full border rounded-lg p-2 resize-none" rows="4" />
+        </FormField>
+        <ModalActions onClose={() => setIsEditModalOpen(false)} onSubmit={async () => {
+          await saveDateChanges(selectedTask);
+          setIsEditModalOpen(false);
+          revalidateData();
+        }} agreeMessage="Salvar" desagreeMessage="Cancelar" />
+        <button onClick={async () => {
+          await deleteDate(selectedTask.id);
+          setIsEditModalOpen(false);
+        }} className="bg-red-500 text-white w-full rounded-md p-2 mt-4">Excluir Date</button>
+      </BaseModal>
+      <BaseModal isOpen={isCoupleImageModalOpen} onClose={handleCoupleImageClose} title="Imagem de Casal">
+        <ImageUpload previewUrl={couplePreviewUrl} fileInputRef={coupleFileInputRef} onImageClick={handleCoupleImageClick} />
+        <ModalActions onClose={handleCoupleImageClose} onSubmit={handleSaveCoupleImage} agreeMessage="Salvar" desagreeMessage="Cancelar" />
       </BaseModal>
     </>
   );
