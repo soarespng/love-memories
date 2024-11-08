@@ -3,18 +3,45 @@ import { ImagePlus } from 'lucide-react';
 import { BaseModal, FormField, ModalActions, ImageUpload } from '@/components/Modals';
 import StarRating from '@/components/StarRating';
 
-const MainContent = ({ activities, coupleData, userData, daysTogether, finishedActivities, revalidateData }) => {
+const MainContent = ({ setActiveSection, activities, coupleData, userData, daysTogether, finishedActivities, revalidateData, revalidateCoupleData }) => {
   const fileInputRef = useRef(null);
+  const coupleFileInputRef = useRef(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isCoupleImageModalOpen, setIsCoupleImageModalOpen] = useState(false);
   const [rating, setRating] = useState(0);
   const [description, setDescription] = useState('');
   const [images, setImages] = useState([]);
+  const [coupleImages, setCoupleImages] = useState([]);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [couplePreviewUrl, setCouplePreviewUrl] = useState(null);
 
-  const handleImageClick = () => {
-    fileInputRef.current?.click();
+  const handleCoupleImageClick = () => {
+    coupleFileInputRef.current?.click();
+  };
+
+  const handleCoupleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setCouplePreviewUrl(url);
+      setCoupleImages([file]);
+      setIsCoupleImageModalOpen(true);
+    }
+  };
+
+  const handleSaveCoupleImage = async () => {
+    try {
+      const imageUrl = await UploadCoupleImage(coupleData.id, coupleImages[0]);
+      revalidateCoupleData();
+    } catch (error) {
+      console.error(error.message);
+    } finally {
+      setIsCoupleImageModalOpen(false);
+      setCouplePreviewUrl(null);
+      setCoupleImages([]);
+    }
   };
 
   const handleTaskClick = (activity) => {
@@ -34,7 +61,13 @@ const MainContent = ({ activities, coupleData, userData, daysTogether, finishedA
 
   const handleDetailsClose = () => {
     setIsDetailsModalOpen(false);
+    setPreviewUrl(null);
   };
+
+  const handleCoupleImageClose = () => {
+    setIsCoupleImageModalOpen(false);
+    setCouplePreviewUrl(null);
+  }
 
   const handleSaveDetails = async () => {
     try {
@@ -45,12 +78,13 @@ const MainContent = ({ activities, coupleData, userData, daysTogether, finishedA
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ date_id: selectedTask.id, rating, description, date_img: date_img }),
+        body: JSON.stringify({ date_id: selectedTask.id, rating, description, date_img }),
       });
 
       const data = await response.json();
-    } catch {
-      throw new Error(data.message || 'Erro ao finalizar date');
+      if (!response.ok) throw new Error(data.message || 'Erro ao finalizar date');
+    } catch (error) {
+      console.error(error.message);
     }
 
     setIsDetailsModalOpen(false);
@@ -69,17 +103,33 @@ const MainContent = ({ activities, coupleData, userData, daysTogether, finishedA
       formData.append('collection_id', collection_id);
       formData.append('file', file);
 
-
       const response = await fetch('/api/date/uploadImage', {
         method: 'POST',
         body: formData,
       });
 
       const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Erro ao fazer o upload da imagem');
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Erro ao fazer o upload da imagem');
-      }
+      return data.public_url;
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
+
+  const UploadCoupleImage = async (couple_id, file) => {
+    try {
+      const formData = new FormData();
+      formData.append('couple_id', couple_id);
+      formData.append('file', file);
+
+      const response = await fetch('/api/couple/uploadImage', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Erro ao fazer o upload da imagem');
 
       return data.public_url;
     } catch (error) {
@@ -106,25 +156,42 @@ const MainContent = ({ activities, coupleData, userData, daysTogether, finishedA
                       className="w-full h-full object-cover rounded-lg"
                     />
                     <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-lg">
-                      <button onClick={handleImageClick}>
+                      <button onClick={handleCoupleImageClick}>
                         <ImagePlus className="w-8 h-8 text-white" />
+                        <input
+                          accept="image/*"
+                          type="file"
+                          ref={coupleFileInputRef}
+                          style={{ display: "none" }}
+                          onChange={handleCoupleImageChange}
+                        />
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div
-                    onClick={handleImageClick}
-                    className="flex flex-col items-center justify-center h-64 w-full border-2 border-dashed border-gray-300 cursor-pointer rounded-lg"
-                  >
-                    <ImagePlus className="w-8 h-8 text-gray-400" />
-                    <span className="mt-2 text-sm text-gray-500 font-medium">Adicionar imagem do casal</span>
-                  </div>
+                  <FormField>
+                    <ImageUpload
+                      previewUrl={couplePreviewUrl}
+                      onImageClick={handleCoupleImageClick}
+                      fileInputRef={coupleFileInputRef}
+                    />
+                    <input
+                      type="file"
+                      ref={coupleFileInputRef}
+                      style={{ display: "none" }}
+                      onChange={handleCoupleImageChange}
+                    />
+                  </FormField>
                 )}
-                <h2 className="text-xl font-semibold mt-4">{`${userData.user1} & ${userData.user2}`}</h2>
-                <p className="text-gray-600 text-sm">{daysTogether} dias juntos | {finishedActivities} dates concluídos</p>
+                <div className="flex justify-center items-center flex-col">
+                  <h2 className="text-xl font-semibold">{coupleData?.couple_name || `${userData.user1} & ${userData.user2}`}</h2>
+                  <p className="text-gray-600 text-sm">{daysTogether} dias juntos | {finishedActivities} dates concluídos</p>
+                  <div className="w-full mt-4">
+                    <button onClick={() => setActiveSection("coupleProfile")} className="bg-red-300 w-full rounded-md text-white p-2">Editar perfil</button>
+                  </div>
+                </div>
               </div>
             </div>
-
             <div className="mt-6 mb-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
@@ -135,11 +202,10 @@ const MainContent = ({ activities, coupleData, userData, daysTogether, finishedA
                 </div>
               </div>
             </div>
-
             <div className="space-y-4 mb-24 sm:mb-0">
               {activities.length > 0 ? (
                 activities
-                  .filter((activity) => activity.date_finished === false)
+                  .filter((activity) => !activity.date_finished)
                   .map((activity) => (
                     <div
                       key={activity.id}
@@ -152,7 +218,7 @@ const MainContent = ({ activities, coupleData, userData, daysTogether, finishedA
                       </div>
                       <input
                         type="checkbox"
-                        checked={activity.date_finished === true}
+                        checked={activity.date_finished}
                         onChange={(e) => e.stopPropagation()}
                         className="w-5 h-5 rounded border-gray-300"
                       />
@@ -165,18 +231,14 @@ const MainContent = ({ activities, coupleData, userData, daysTogether, finishedA
           </div>
         </div>
       )}
-
-      {/* Confirmation Modal */}
       <BaseModal isOpen={isConfirmModalOpen} onClose={handleConfirmClose} title="Deseja concluir o date?">
-        <ModalActions onClose={handleConfirmClose} onSubmit={handleConfirmYes} desagreeMessage={'Não'} agreeMessage={'Sim'} />
+        <ModalActions onClose={handleConfirmClose} onSubmit={handleConfirmYes} desagreeMessage="Não" agreeMessage="Sim" />
       </BaseModal>
-
-      {/* Details Modal */}
       <BaseModal isOpen={isDetailsModalOpen} onClose={handleDetailsClose} title="Como foi o date?">
         <FormField label="Imagem">
           <ImageUpload
             previewUrl={previewUrl}
-            onImageClick={handleImageClick}
+            onImageClick={() => fileInputRef.current?.click()}
             fileInputRef={fileInputRef}
           />
           <input
@@ -206,7 +268,11 @@ const MainContent = ({ activities, coupleData, userData, daysTogether, finishedA
             rows="4"
           />
         </FormField>
-        <ModalActions onClose={handleDetailsClose} onSubmit={handleSaveDetails} agreeMessage={'Salvar'} desagreeMessage={'Cancelar'} />
+        <ModalActions onClose={handleDetailsClose} onSubmit={handleSaveDetails} agreeMessage="Salvar" desagreeMessage="Cancelar" />
+      </BaseModal>
+      <BaseModal isOpen={isCoupleImageModalOpen} onClose={() => setIsCoupleImageModalOpen(false)} title="Deseja salvar a imagem?">
+        <img src={couplePreviewUrl} alt="Pré-visualização do casal" className="w-full max-h-60 object-cover rounded-lg mb-4" />
+        <ModalActions onClose={handleCoupleImageClose} onSubmit={handleSaveCoupleImage} desagreeMessage="Cancelar" agreeMessage="Salvar" />
       </BaseModal>
     </>
   );

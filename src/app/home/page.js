@@ -6,6 +6,7 @@ import { jwtDecode } from "jwt-decode";
 import NavBar from "@/components/Navbar";
 import MainContent from "@/components/MainContent";
 import Gallery from "@/components/Gallery";
+import CoupleProfile from "@/components/CoupleProfile";
 
 export default function AuthHome() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -25,6 +26,13 @@ export default function AuthHome() {
     if (coupleData?.id) {
       await fetchAllDates(coupleData.id);
       await fetchCollections(coupleData.id);
+    }
+  };
+
+  const revalidateCoupleData = async () => {
+    if (localStorage.getItem("token")) {
+      const userId = jwtDecode(localStorage.getItem("token"))
+      await fetchCoupleData(userId.id);
     }
   };
 
@@ -158,22 +166,31 @@ export default function AuthHome() {
 
   return (
     <>
-      <NavBar currentUser={currentUser} collections={collections} setActiveSection={setActiveSection} revalidateData={revalidateData} />
+      <NavBar currentUser={currentUser} collections={collections} activeSection={activeSection} setActiveSection={setActiveSection} revalidateData={revalidateData} />
       <div className="flex">
         <div className="hidden sm:block sm:min-w-64 max-w-64 h-screen"></div>
 
         {activeSection === "home" && (
           <MainContent
+            setActiveSection={setActiveSection}
             activities={activities}
             coupleData={coupleData}
             userData={userData}
             daysTogether={daysTogether}
             finishedActivities={finishedActivities}
-            revalidateData={revalidateData} />
+            revalidateData={revalidateData}
+            revalidateCoupleData={revalidateCoupleData} />
         )}
 
         {activeSection === "gallery" && (
           <Gallery activities={activities} />
+        )}
+
+        {activeSection === "coupleProfile" && (
+          <CoupleProfile 
+            coupleData={coupleData}
+            userData={userData} 
+            revalidateCoupleData={revalidateCoupleData} />
         )}
       </div>
     </>

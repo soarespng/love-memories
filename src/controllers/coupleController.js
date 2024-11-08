@@ -1,4 +1,5 @@
 const supabase = require('../config/supabase');
+const crypto = require('crypto');
 
 exports.existUserInCouple = async (req, res) => {
   const { userId } = req.query;
@@ -21,12 +22,10 @@ exports.existUserInCouple = async (req, res) => {
   }
 };
 
-// Função para buscar os dados do casal baseado no ID do usuário
 exports.getCoupleData = async (req, res) => {
   const { userId } = req.query;
 
   try {
-    // Consulta os dados do casal onde o usuário seja user1 ou user2
     const { data: couple, error: coupleError } = await supabase
       .from('couples')
       .select('*')
@@ -37,7 +36,6 @@ exports.getCoupleData = async (req, res) => {
       return res.status(400).json({ error: 'Erro ao buscar dados do casal' });
     }
 
-    // Retorna os dados do casal
     res.status(200).json({ couple });
   } catch (error) {
     console.error('Erro ao buscar dados do casal:', error);
@@ -80,40 +78,67 @@ exports.getAllTasks = async (req, res) => {
   }
 }
 
-// exports.getCompletedTasksCount = async (req, res) => {
-//   const { coupleId } = req.params;
+exports.uploadImage = async (req, res) => {
+  const { couple_id } = req.body;
+  const file = req.file;
 
-//   try {
-//     const { data: collections, error: listError } = await supabase
-//       .from('collections')
-//       .select('id')
-//       .eq('couple_id', coupleId);
+  if (!file) {
+    return res.status(400).json({ message: "Arquivo não enviado" });
+  }
 
-//     if (listError) {
-//       return res.status(400).json({ error: 'Erro ao buscar listas de tarefas' });
-//     }
+  try {
+    const { data: imgData, error: imgDataError } = await supabase.storage
+      .from('couple_images')
+      .list(couple_id);
 
-//     if (collections.length === 0) {
-//       return res.status(200).json({ completedTasksCount: 0 });
-//     }
+    if (imgDataError) {
+      throw new Error("Erro ao buscar imagens existentes no bucket");
+    }
 
-//     const listIds = collections.map((list) => list.id);
+    const nameFile = imgData.length > 0 ? imgData[0].name : crypto.randomUUID();
 
-//     // Busca as tarefas concluídas com base nos IDs das listas
-//     const { data: tasks, error: taskError } = await supabase
-//       .from('tasks')
-//       .select('status')
-//       .in('list_id', listIds);
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('couple_images')
+      .upload(`${couple_id}/${nameFile}`, file.buffer, {
+        upsert: true,
+        contentType: file.mimetype,
+      });
 
-//     if (taskError) {
-//       return res.status(400).json({ error: 'Erro ao buscar tarefas' });
-//     }
+    if (uploadError) throw uploadError;
 
-//     const completedTasksCount = tasks.filter((task) => task.status === 'concluída').length;
+    const { data: publicUrlData } = await supabase.storage
+      .from('couple_images')
+      .getPublicUrl(`${couple_id}/${nameFile}`);
 
-//     res.status(200).json({ completedTasksCount });
-//   } catch (error) {
-//     console.error('Erro ao buscar tarefas concluídas:', error);
-//     res.status(500).json({ error: 'Erro interno do servidor' });
-//   }
-// };
+    if (!publicUrlData.publicUrl) {
+      throw new Error("Erro ao gerar URL pública da imagem");
+    }
+
+    const { error: updateError } = await supabase
+      .from('couples')
+      .update({ couple_img: publicUrlData.publicUrl })
+      .eq('id', couple_id);
+
+    if (updateError) throw updateError;
+
+    res.status(200).json({ message: "Upload concluído", public_url: publicUrlData.publicUrl });
+  } catch (error) {
+    res.status(500).json({ message: error.message || "Erro interno", error: error.message });
+  }
+};
+
+exports.updateCoupleData = async (req, res) => {
+  const { couple_id, couple_img, couple_name, since } = req.body;
+
+  try {
+    const { data: coupleData, error: coupleError } = await supabase
+      .from('couples')
+      .update([{ couple_img: couple_img, couple_name: couple_name, since: since, modify_at: new Date() }])
+      .eq('id', couple_id);
+
+    if (coupleError) throw coupleError;
+    res.status(200).json({ message: "dados atualizados com sucesso" });
+  } catch (error) {
+    res.status(500).json({ message: error.message || "Erro interno", error: error.message });
+  }
+}

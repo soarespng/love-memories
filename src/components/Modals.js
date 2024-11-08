@@ -49,7 +49,7 @@ const ImageUpload = ({ previewUrl, onImageClick, fileInputRef }) => (
   <button
     type="button"
     onClick={onImageClick}
-    className="w-40 h-40 rounded-xl border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+    className="w-40 h-40 rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
   >
     {previewUrl ? (
       <div className="relative w-full h-full">

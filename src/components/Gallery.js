@@ -4,7 +4,7 @@ import { Star } from 'lucide-react';
 const Gallery = ({ activities }) => {
     return (
         <div className="w-full min-h-screen flex justify-center bg-gray-50 p-4">
-            <div className="w-full grid grid-rows-2 grid-cols-1 gap-7 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 mb-24 sm:mb-0">
+            <div className="w-full grid grid-rows-2 grid-cols-1 gap-7 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 mb-24 sm:mb-0">
                 {activities.length > 0 ? (
                     activities
                         .filter((activity) => activity.date_finished === true)
@@ -23,9 +23,9 @@ const Gallery = ({ activities }) => {
                                         <h3 className="text-lg font-medium mb-1">{activity.title}</h3>
                                         <p className="text-gray-600 text-lg">{activity.description}</p>
                                     </div>
-                                    <div className="flex items-center justify-center text-gray-600 text-sm">
-                                    <span className="mr-2 text-lg">{activity.rating}</span>
-                                    <Star size={20} />
+                                    <div className="flex h-fit items-center justify-center text-gray-600 text-sm">
+                                        <span className="mr-1 text-lg flex justify-center items-center">{activity.rating}</span>
+                                        <Star size={22} />
                                     </div>
                                 </div>
                             </div>

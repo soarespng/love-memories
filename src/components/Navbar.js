@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
-import { Home, Image, Settings, User, Plus, LogOut } from 'lucide-react';
+import { Home, Image, Users2, User, Plus, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { BaseModal, FormField, ModalActions } from '@/components/Modals';
 
-const NavBar = ({ currentUser, collections, setActiveSection, revalidateData }) => {
+const NavBar = ({ currentUser, collections, activeSection, setActiveSection, revalidateData }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({ title: '', collectionId: '' });
   const router = useRouter();
 
-  const handleNewDate = () => {
-    setIsOpen(true);
-  };
-
+  const handleNewDate = () => setIsOpen(true);
   const handleClose = () => {
     setIsOpen(false);
     setFormData({ title: '', collectionId: '' });
@@ -25,12 +22,10 @@ const NavBar = ({ currentUser, collections, setActiveSection, revalidateData }) 
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
 
-      if (!response.ok) {
-        throw new Error('Falha ao criar novo date');
-      }
+      if (!response.ok) throw new Error('Falha ao criar novo date');
 
       setIsOpen(false);
       setFormData({ title: '', collectionId: '' });
@@ -58,6 +53,7 @@ const NavBar = ({ currentUser, collections, setActiveSection, revalidateData }) 
         <div className="text-center text-gray-500">Carregando dados...</div>
       ) : (
         <>
+          {/* Navbar Desktop */}
           <div className="hidden md:flex flex-col fixed z-20 left-0 top-0 h-screen w-64 bg-white shadow-lg">
             <div className="p-4 border-b">
               <div className="flex items-center space-x-3">
@@ -84,28 +80,34 @@ const NavBar = ({ currentUser, collections, setActiveSection, revalidateData }) 
                 <li>
                   <a
                     onClick={() => setActiveSection("home")}
-                    className="flex items-center w-full space-x-3 p-3 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                    className={`flex items-center w-full space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                      activeSection === "home" ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
                   >
-                    <Home className="w-6 h-6 text-gray-600" />
-                    <span className="text-gray-700">Home</span>
+                    <Home className={`w-6 h-6 ${activeSection === "home" ? 'text-blue-700' : 'text-gray-600'}`} />
+                    <span>Home</span>
                   </a>
                 </li>
                 <li>
                   <a
                     onClick={() => setActiveSection("gallery")}
-                    className="flex items-center space-x-3 p-3 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                    className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                      activeSection === "gallery" ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
                   >
-                    <Image className="w-6 h-6 text-gray-600" />
-                    <span className="text-gray-700">Galeria</span>
+                    <Image className={`w-6 h-6 ${activeSection === "gallery" ? 'text-blue-700' : 'text-gray-600'}`} />
+                    <span>Galeria</span>
                   </a>
                 </li>
                 <li>
                   <a
-                    onClick={() => setActiveSection("gallery")}
-                    className="flex items-center space-x-3 p-3 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => setActiveSection("coupleProfile")}
+                    className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                      activeSection === "coupleProfile" ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
                   >
-                    <Settings className="w-6 h-6 text-gray-600" />
-                    <span className="text-gray-700">Configurações</span>
+                    <Users2 className={`w-6 h-6 ${activeSection === "coupleProfile" ? 'text-blue-700' : 'text-gray-600'}`} />
+                    <span>Perfil do casal</span>
                   </a>
                 </li>
               </ul>
@@ -122,15 +124,16 @@ const NavBar = ({ currentUser, collections, setActiveSection, revalidateData }) 
             </div>
           </div>
 
+          {/* Navbar Mobile */}
           <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t z-30">
             <div className="flex justify-between items-center px-6 py-2">
               <a onClick={() => setActiveSection("home")} className="flex flex-col items-center p-2">
-                <Home className="w-6 h-6 text-gray-600" />
-                <span className="text-xs text-gray-600 mt-1">Home</span>
+                <Home className={`w-6 h-6 ${activeSection === "home" ? 'text-blue-700' : 'text-gray-600'}`} />
+                <span className={`text-xs ${activeSection === "home" ? 'text-blue-700' : 'text-gray-600'} mt-1`}>Home</span>
               </a>
               <a onClick={() => setActiveSection("gallery")} className="flex flex-col items-center p-2">
-                <Image className="w-6 h-6 text-gray-600" />
-                <span className="text-xs text-gray-600 mt-1">Galeria</span>
+                <Image className={`w-6 h-6 ${activeSection === "gallery" ? 'text-blue-700' : 'text-gray-600'}`} />
+                <span className={`text-xs ${activeSection === "gallery" ? 'text-blue-700' : 'text-gray-600'} mt-1`}>Galeria</span>
               </a>
               <div className="relative -top-5">
                 <button
@@ -140,9 +143,9 @@ const NavBar = ({ currentUser, collections, setActiveSection, revalidateData }) 
                   <Plus className="w-8 h-8" />
                 </button>
               </div>
-              <a onClick={() => setActiveSection("gallery")} className="flex flex-col items-center p-2">
-                <Settings className="w-6 h-6 text-gray-600" />
-                <span className="text-xs text-gray-600 mt-1">Config</span>
+              <a onClick={() => setActiveSection("coupleProfile")} className="flex flex-col items-center p-2">
+                <Users2 className={`w-6 h-6 ${activeSection === "coupleProfile" ? 'text-blue-700' : 'text-gray-600'}`} />
+                <span className={`text-xs ${activeSection === "coupleProfile" ? 'text-blue-700' : 'text-gray-600'} mt-1`}>Perfil</span>
               </a>
               <button onClick={handleLogout} className="flex flex-col items-center p-2">
                 <LogOut className="w-6 h-6 text-red-600" />
@@ -150,16 +153,29 @@ const NavBar = ({ currentUser, collections, setActiveSection, revalidateData }) 
               </button>
             </div>
           </div>
+
           {/* Modal */}
           <BaseModal isOpen={isOpen} onClose={handleClose} title="Novo date">
-            <FormField label="Título">
+            <FormField label="Destino">
               <input
+                required
                 type="text"
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
                 className="w-full py-2 px-4 border rounded-lg"
                 placeholder="Pra onde vamos?"
+              />
+            </FormField>
+
+            <FormField label="Date">
+              <input
+                type="text"
+                name="date"
+                value={formData.date}
+                onChange={handleChange}
+                className="w-full py-2 px-4 border rounded-lg"
+                placeholder="Oque faremos?"
               />
             </FormField>
 

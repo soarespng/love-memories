@@ -26,7 +26,6 @@ exports.registerUser = async (req, res) => {
   res.status(200).json({ message: 'User registered successfully', user: data });
 };
 
-// Função para login do usuário
 exports.loginUser = async (req, res) => {
   const { email, password } = req.body;
 
@@ -44,7 +43,7 @@ exports.loginUser = async (req, res) => {
   const token = jwt.sign(
     { id: users.id, email: users.email },
     process.env.NEXT_PUBLIC_JWT_SECRET,
-    { expiresIn: '1h' }
+    { expiresIn: '24h' }
   );
 
   res.status(200).json({ token, user: { id: users.id, email: users.email } });
@@ -70,10 +69,9 @@ exports.getUserData = async (req, res) => {
   }
 };
 
-// Função para obter dados de dois usuários por IDs
 exports.getUsersData = async (req, res) => {
   const { user1Id, user2Id } = req.query;
-  
+
   try {
     const { data: users, error: userError } = await supabase
       .from('users')
@@ -90,7 +88,6 @@ exports.getUsersData = async (req, res) => {
   }
 };
 
-// Função para vincular dois usuários
 exports.linkUsers = async (req, res) => {
   const { userCurrentId, syncCode } = req.body;
 
@@ -103,15 +100,18 @@ exports.linkUsers = async (req, res) => {
 
     if (errorUser || !user) return res.status(400).json({ error: 'User not found' });
 
-    const { data, error } = await supabase
-      .from('couples')
-      .insert([{ user1_id: userCurrentId, user2_id: user.id }]);
+    if (user.id === userCurrentId) {
+      return res.status(400).json({ error: 'Usuario não pode ser vinculado a ele mesmo' });
+    } else {
+      const { data, error } = await supabase
+        .from('couples')
+        .insert([{ user1_id: userCurrentId, user2_id: user.id }]);
 
-    if (error) {
-      return res.status(400).json({ error: 'Failed to link users' });
+      if (error) {
+        return res.status(400).json({ error: 'Failed to link users' });
+      }
+      res.status(200).json({ message: 'Users linked successfully', couple: data });
     }
-
-    res.status(200).json({ message: 'Users linked successfully', couple: data });
   } catch (error) {
     console.error('Error linking users:', error);
     res.status(500).json({ error: 'Server error' });
