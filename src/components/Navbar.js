@@ -168,17 +168,27 @@ const NavBar = ({ currentUser, collections, activeSection, setActiveSection, rev
               />
             </FormField>
 
-            <FormField label="Date">
+            <FormField label="Evento">
               <input
                 type="text"
                 name="date"
                 value={formData.date}
                 onChange={handleChange}
                 className="w-full py-2 px-4 border rounded-lg"
-                placeholder="Oque faremos?"
+                placeholder="Aniversário de namoro"
               />
             </FormField>
 
+            <FormField label="Data (Opcional)">
+                <input 
+                  type="datetime-local"
+                  name="calendar"
+                  value={FormData.calendar}
+                  onChange={handleChange}
+                  className="w-full py-2 px-4 rounded-lg"
+                />
+            </FormField>
+            
             <FormField label="Coleção">
               <select
                 name="collectionId"
