@@ -5,13 +5,21 @@ import { BaseModal, FormField, ModalActions } from '@/components/Modals';
 
 const NavBar = ({ currentUser, collections, activeSection, setActiveSection, revalidateData }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [formData, setFormData] = useState({ title: '', collectionId: '' });
+  const [formData, setFormData] = useState({});
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [categoryData, setCategoryData] = useState({ title: '' });
+
   const router = useRouter();
 
   const handleNewDate = () => setIsOpen(true);
   const handleClose = () => {
     setIsOpen(false);
-    setFormData({ title: '', collectionId: '' });
+    setFormData({});
+  };
+
+  const handleCategoryClose = () => {
+    setIsCategoryModalOpen(false);
+    setCategoryData({ title: '' });
   };
 
   const handleSaveDate = async (e) => {
@@ -24,20 +32,47 @@ const NavBar = ({ currentUser, collections, activeSection, setActiveSection, rev
         },
         body: JSON.stringify(formData),
       });
+      console.log(JSON.stringify(formData));
 
       if (!response.ok) throw new Error('Falha ao criar novo date');
 
       setIsOpen(false);
-      setFormData({ title: '', collectionId: '' });
+      setFormData({});
       revalidateData();
     } catch (error) {
       console.error('Erro ao salvar date:', error);
     }
   };
 
+  const handleSaveCategory = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('/api/category/new', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(categoryData),
+      });
+
+      if (!response.ok) throw new Error('Falha ao criar nova categoria');
+
+      setIsCategoryModalOpen(false);
+      setCategoryData({ title: '' });
+      revalidateData();
+    } catch (error) {
+      console.error('Erro ao salvar categoria:', error);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
+  };
+
+  const handleCategoryChange = (e) => {
+    const { name, value } = e.target;
+    setCategoryData((prevData) => ({ ...prevData, [name]: value }));
   };
 
   const handleLogout = () => {
@@ -160,8 +195,8 @@ const NavBar = ({ currentUser, collections, activeSection, setActiveSection, rev
               <input
                 required
                 type="text"
-                name="title"
-                value={formData.title}
+                name="destiny"
+                value={formData.destiny}
                 onChange={handleChange}
                 className="w-full py-2 px-4 border rounded-lg"
                 placeholder="Pra onde vamos?"
@@ -171,8 +206,8 @@ const NavBar = ({ currentUser, collections, activeSection, setActiveSection, rev
             <FormField label="Evento">
               <input
                 type="text"
-                name="date"
-                value={formData.date}
+                name="event"
+                value={formData.event}
                 onChange={handleChange}
                 className="w-full py-2 px-4 border rounded-lg"
                 placeholder="Aniversário de namoro"
@@ -183,29 +218,46 @@ const NavBar = ({ currentUser, collections, activeSection, setActiveSection, rev
                 <input 
                   type="datetime-local"
                   name="calendar"
-                  value={FormData.calendar}
+                  value={formData.calendar}
                   onChange={handleChange}
-                  className="w-full py-2 px-4 rounded-lg"
+                  className="w-full py-2 px-4 border rounded-lg"
                 />
             </FormField>
             
-            <FormField label="Coleção">
+            <FormField label="Categoria">
               <select
                 name="collectionId"
                 value={formData.collectionId}
                 onChange={handleChange}
                 className="w-full py-2 px-4 border rounded-lg"
               >
-                <option value="">Selecione uma coleção</option>
+                <option value="">Selecione uma categoria</option>
                 {collections.collections.length > 0 && collections.collections.map((collection) => (
                   <option key={collection.id} value={collection.id}>
                     {collection.title}
                   </option>
                 ))}
               </select>
+              <button className="border rounded-lg ml-3 p-2"><Plus /></button>
             </FormField>
 
             <ModalActions onClose={handleClose} onSubmit={handleSaveDate} agreeMessage={'Salvar'} desagreeMessage={'Cancelar'}/>
+          </BaseModal>
+
+          <BaseModal isOpen={isCategoryModalOpen} onClose={handleCategoryClose} title="Nova Categoria">
+            <FormField label="Nome da Categoria">
+              <input
+                required
+                type="text"
+                name="title"
+                value={categoryData.title}
+                onChange={handleCategoryChange}
+                className="w-full py-2 px-4 border rounded-lg"
+                placeholder="Nome da categoria"
+              />
+            </FormField>
+
+            <ModalActions onClose={handleCategoryClose} onSubmit={handleSaveCategory} agreeMessage={'Salvar'} desagreeMessage={'Cancelar'} />
           </BaseModal>
         </>
       )}

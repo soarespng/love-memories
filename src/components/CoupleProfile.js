@@ -112,6 +112,7 @@ const CoupleProfile = ({ coupleData, userData, revalidateCoupleData }) => {
                     <FormField label="Nome personalizado (Opcional)">
                         <input
                             placeholder={coupleName}
+                            value={coupleName}
                             onChange={(e) => setCoupleName(e.target.value)}
                             className="w-full border rounded-lg p-2"
                         />
@@ -120,7 +121,7 @@ const CoupleProfile = ({ coupleData, userData, revalidateCoupleData }) => {
                     <FormField label="Data que se conheceram">
                         <input
                             type="datetime-local"
-                            value={sinceDate}
+                            value={sinceDate ? new Date(sinceDate).toISOString().slice(0,16)  : ''}
                             onChange={(e) => setSinceDate(e.target.value)}
                             className="w-full border rounded-lg p-2"
                         />

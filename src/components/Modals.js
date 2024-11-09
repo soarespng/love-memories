@@ -17,7 +17,7 @@ const BaseModal = ({ isOpen, onClose, title, children }) => {
 
 const FormField = ({ label, children }) => (
   <div className="mb-4">
-    <label className="block text-sm font-medium text-gray-700 mb-2">
+    <label className="block text-lg font-medium text-gray-700 mb-2">
       {label}
     </label>
     <div className="flex justify-center">
@@ -38,7 +38,7 @@ const ModalActions = ({ onClose, onSubmit, agreeMessage, desagreeMessage }) => (
     <button
       type="submit"
       onClick={onSubmit}
-      className="flex-1 py-3 px-4 rounded-xl bg-gray-100 text-gray-900 font-medium hover:bg-gray-200 focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:outline-none transition-colors"
+      className="flex-1 py-3 px-4 rounded-xl bg-blue-500 text-white font-medium hover:bg-blue-600 focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:outline-none transition-colors"
     >
       {agreeMessage}
     </button>

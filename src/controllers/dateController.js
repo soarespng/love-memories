@@ -1,12 +1,16 @@
 const supabase = require('../config/supabase');
 
 exports.createNewDate = async (req, res) => {
-  const { title, collectionId } = req.body;
+  const { collectionId, destiny, event, calendar } = req.body;
+  console.log(collectionId);
+  console.log(destiny);
+  console.log(event);
+  console.log(calendar);
 
   try {
     const { data: date, error: dateError } = await supabase
       .from('dates')
-      .insert([{ title: title, collection_id: collectionId, date_finished: false }]);
+      .insert([{ destiny: destiny, date_event: event, calendar: calendar, collection_id: collectionId, date_finished: false }]);
 
     if (dateError) {
       return res.status(400).json({ error: 'Erro ao inserir novo date' });

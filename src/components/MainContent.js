@@ -18,6 +18,10 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
   const [previewUrl, setPreviewUrl] = useState(null);
   const [couplePreviewUrl, setCouplePreviewUrl] = useState(null);
 
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
+  }
+
   const handleCoupleImageClick = () => {
     coupleFileInputRef.current?.click();
   };
@@ -170,6 +174,7 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
 
   const isLoading = !userData || userData.user1 == null || userData.user2 == null || !coupleData || !activities;
 
+  console.log(activities)
   return (
     <>
       {isLoading ? (
@@ -214,10 +219,10 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
                     />
                   </FormField>
                 )}
-                <div className="flex justify-center items-center flex-col">
+                <div className="flex justify-center items-center flex-col mt-4">
                   <h2 className="text-xl font-semibold">{coupleData?.couple_name || `${userData.user1} & ${userData.user2}`}</h2>
                   <p className="text-gray-600 text-sm">{daysTogether} dias juntos | {finishedActivities} dates concluídos</p>
-                  <div className="w-full mt-4">
+                  <div className="w-full mt-2">
                     <button onClick={() => setActiveSection("coupleProfile")} className="bg-red-300 w-full rounded-md text-white p-2">Editar perfil</button>
                   </div>
                 </div>
@@ -244,8 +249,11 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
                       onClick={() => handleEditTaskClick(activity)}
                     >
                       <div>
-                        <h3 className="font-medium">{activity.title}</h3>
-                        <p className="text-sm text-gray-600">{activity.description}</p>
+                        <h3 className="font-semibold">{activity.destiny}</h3>
+                        <p className="text-sm text-gray-600">{activity.date_event}</p>
+                        <p className="text-sm text-gray-600">
+                          {activity?.calendar ? new Date(activity.calendar).toLocaleDateString('pt-BR') : null}
+                        </p>
                       </div>
                       <input
                         type="checkbox"
@@ -255,28 +263,26 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
                           handleTaskClick(activity);
                         }}
                         onChange={(e) => e.stopPropagation()}
-                        className="w-5 h-5 rounded border-gray-300"
+                        className="w-7 h-7 rounded border-gray-300"
                       />
                     </div>
                   ))
               ) : (
-                <p className="text-gray-500">Nenhum date pendente</p>
+                <div className="flex justify-center">
+                  <p className="text-gray-500">Nenhum date pendente</p>
+                </div>
               )}
             </div>
           </div>
         </div>
       )}
+
       <BaseModal isOpen={isConfirmModalOpen} onClose={handleConfirmClose} title="Finalizar date?">
-        <p>Você tem certeza de que deseja finalizar o date?</p>
-        <ModalActions onClose={handleConfirmClose} onSubmit={handleConfirmYes} />
+        <p className="flex justify-center">Você deseja finalizar o date?</p>
+        <ModalActions agreeMessage="Sim" desagreeMessage="Não" onClose={handleConfirmClose} onSubmit={handleConfirmYes} />
       </BaseModal>
+
       <BaseModal isOpen={isDetailsModalOpen} onClose={handleDetailsClose} title="Detalhes do date">
-        <FormField label="Avaliação">
-          <StarRating rating={rating} onRatingChange={setRating} />
-        </FormField>
-        <FormField label="Descrição">
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border rounded-lg p-2 resize-none" rows="4" />
-        </FormField>
         <FormField label="Imagem">
           <ImageUpload previewUrl={previewUrl} onImageClick={() => fileInputRef.current?.click()} fileInputRef={fileInputRef} onImageChange={(e) => {
             const file = e.target.files[0];
@@ -286,15 +292,49 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
               setImages([file]);
             }
           }} />
+          <input
+            type="file"
+            ref={fileInputRef}
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (file) {
+                const url = URL.createObjectURL(file);
+                setPreviewUrl(url);
+                setImages([file]);
+              }
+            }}
+          />
+        </FormField>
+        <FormField label="Avaliação">
+          <StarRating rating={rating} onRatingChange={setRating} />
+        </FormField>
+        <FormField label="Descrição">
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border rounded-lg p-2 resize-none" rows="4" />
         </FormField>
         <ModalActions onClose={handleDetailsClose} onSubmit={handleSaveDetails} agreeMessage="Salvar" desagreeMessage="Cancelar" />
       </BaseModal>
+
       <BaseModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Editar Date">
-        <FormField label="Título">
-          <input type="text" value={selectedTask?.title || ''} onChange={(e) => setSelectedTask({ ...selectedTask, title: e.target.value })} className="w-full border rounded-lg p-2" />
+        <FormField label="Destino">
+          <input 
+            type="text" 
+            value={selectedTask?.destiny || ''} 
+            onChange={(e) => setSelectedTask({ ...selectedTask, destiny: e.target.value })} 
+            className="w-full border rounded-lg p-2" />
         </FormField>
-        <FormField label="Descrição">
-          <textarea value={selectedTask?.description || ''} onChange={(e) => setSelectedTask({ ...selectedTask, description: e.target.value })} className="w-full border rounded-lg p-2 resize-none" rows="4" />
+        <FormField label="Evento">
+          <input 
+          type="text" 
+          value={selectedTask?.date_event || ''} 
+          onChange={(e) => setSelectedTask({ ...selectedTask, date_event: e.target.value })} 
+          className="w-full border rounded-lg p-2" />
+        </FormField>
+        <FormField label="Data">
+          <input type="datetime-local" 
+          value={selectedTask?.calendar ? new Date(selectedTask.calendar).toISOString().slice(0,16)  : ''} 
+          onChange={(e) => setSelectedTask({ ...selectedTask, calendar: e.target.value })} 
+          className="w-full border rounded-lg p-2" />
         </FormField>
         <ModalActions onClose={() => setIsEditModalOpen(false)} onSubmit={async () => {
           await saveDateChanges(selectedTask);
@@ -304,10 +344,13 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
         <button onClick={async () => {
           await deleteDate(selectedTask.id);
           setIsEditModalOpen(false);
-        }} className="bg-red-500 text-white w-full rounded-md p-2 mt-4">Excluir Date</button>
+        }} className="bg-red-500 text-white w-full py-3 px-4 rounded-xl mt-4">Excluir Date</button>
       </BaseModal>
-      <BaseModal isOpen={isCoupleImageModalOpen} onClose={handleCoupleImageClose} title="Imagem de Casal">
-        <ImageUpload previewUrl={couplePreviewUrl} fileInputRef={coupleFileInputRef} onImageClick={handleCoupleImageClick} />
+
+      <BaseModal isOpen={isCoupleImageModalOpen} onClose={handleCoupleImageClose} title="Imagem do casal">
+        <div className="flex justify-center mb-2">
+          <ImageUpload previewUrl={couplePreviewUrl} fileInputRef={coupleFileInputRef} onImageClick={handleCoupleImageClick} />
+        </div>
         <ModalActions onClose={handleCoupleImageClose} onSubmit={handleSaveCoupleImage} agreeMessage="Salvar" desagreeMessage="Cancelar" />
       </BaseModal>
     </>

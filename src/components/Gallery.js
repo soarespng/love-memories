@@ -5,7 +5,7 @@ const Gallery = ({ activities }) => {
     return (
         <div className="w-full min-h-screen flex justify-center bg-gray-50 p-4">
             <div className="w-full grid grid-rows-2 grid-cols-1 gap-7 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 mb-24 sm:mb-0">
-                {activities.length > 0 ? (
+                {activities.length > 0 && activities.filter((activity) => activity.date_finished === true).length > 0 ? (
                     activities
                         .filter((activity) => activity.date_finished === true)
                         .map((activity) => (
