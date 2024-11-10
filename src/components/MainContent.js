@@ -108,10 +108,10 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
 
   const saveDateChanges = async (task) => {
     try {
-      const response = await fetch('/api/date/update', {
+      const response = await fetch('/api/date/updateDate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: task.id, title: task.title, description: task.description }),
+        body: JSON.stringify({ id: task.id, destiny: task.destiny, dateEvent: task.date_event, calendar: task.calendar }),
       });
       if (!response.ok) throw new Error('Erro ao salvar alterações do date');
     } catch (error) {
@@ -119,9 +119,9 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
     }
   };
 
-  const deleteDate = async (id) => {
+  const deleteDate = async (dateId) => {
     try {
-      const response = await fetch(`/api/date/delete/${id}`, {
+      const response = await fetch(`/api/date/delete/${dateId}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Erro ao excluir date');
@@ -174,7 +174,6 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
 
   const isLoading = !userData || userData.user1 == null || userData.user2 == null || !coupleData || !activities;
 
-  console.log(activities)
   return (
     <>
       {isLoading ? (
@@ -239,7 +238,7 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
               </div>
             </div>
             <div className="space-y-4 mb-24 sm:mb-0">
-              {activities.length > 0 ? (
+              {activities.length > 0 && activities.filter((activity) => activity.date_finished === false).length > 0 ? (
                 activities
                   .filter((activity) => !activity.date_finished)
                   .map((activity) => (
@@ -277,8 +276,8 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
         </div>
       )}
 
-      <BaseModal isOpen={isConfirmModalOpen} onClose={handleConfirmClose} title="Finalizar date?">
-        <p className="flex justify-center">Você deseja finalizar o date?</p>
+      <BaseModal isOpen={isConfirmModalOpen} onClose={handleConfirmClose} title="Finalizar?">
+        <p className="flex justify-center">Tem certeza que deseja finalizar o date?</p>
         <ModalActions agreeMessage="Sim" desagreeMessage="Não" onClose={handleConfirmClose} onSubmit={handleConfirmYes} />
       </BaseModal>
 

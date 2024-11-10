@@ -3,28 +3,32 @@ import { Home, Image, Users2, User, Plus, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { BaseModal, FormField, ModalActions } from '@/components/Modals';
 
-const NavBar = ({ currentUser, collections, activeSection, setActiveSection, revalidateData }) => {
+const NavBar = ({ currentUser, coupleData, activeSection, setActiveSection, revalidateData, revalidateCoupleData }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({
+    destiny: '', event: '', calendar: '', category: ''
+  });
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-  const [categoryData, setCategoryData] = useState({ title: '' });
+  const [categoryData, setCategoryData] = useState({ coupleId: '', category: '' });
 
   const router = useRouter();
 
   const handleNewDate = () => setIsOpen(true);
+
   const handleClose = () => {
     setIsOpen(false);
-    setFormData({});
+    setFormData({ destiny: '', event: '', calendar: '', category: '' });
   };
 
   const handleCategoryClose = () => {
     setIsCategoryModalOpen(false);
-    setCategoryData({ title: '' });
+    setCategoryData({ coupleId: '', category: '' });
   };
 
   const handleSaveDate = async (e) => {
     e.preventDefault();
     try {
+      formData.coupleId = coupleData.id;
       const response = await fetch('/api/date/new', {
         method: 'POST',
         headers: {
@@ -32,12 +36,11 @@ const NavBar = ({ currentUser, collections, activeSection, setActiveSection, rev
         },
         body: JSON.stringify(formData),
       });
-      console.log(JSON.stringify(formData));
 
       if (!response.ok) throw new Error('Falha ao criar novo date');
 
       setIsOpen(false);
-      setFormData({});
+      setFormData({ destiny: '', event: '', calendar: '', category: '' });
       revalidateData();
     } catch (error) {
       console.error('Erro ao salvar date:', error);
@@ -47,7 +50,8 @@ const NavBar = ({ currentUser, collections, activeSection, setActiveSection, rev
   const handleSaveCategory = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/category/new', {
+      categoryData.coupleId = coupleData.id;
+      const response = await fetch('/api/couple/dates/updateCategory', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -58,8 +62,8 @@ const NavBar = ({ currentUser, collections, activeSection, setActiveSection, rev
       if (!response.ok) throw new Error('Falha ao criar nova categoria');
 
       setIsCategoryModalOpen(false);
-      setCategoryData({ title: '' });
-      revalidateData();
+      setCategoryData({ coupleId: '', category: '' });
+      revalidateCoupleData();
     } catch (error) {
       console.error('Erro ao salvar categoria:', error);
     }
@@ -80,7 +84,7 @@ const NavBar = ({ currentUser, collections, activeSection, setActiveSection, rev
     router.push("/");
   };
 
-  const isLoading = !currentUser || !collections.collections;
+  const isLoading = !currentUser;
 
   return (
     <>
@@ -115,9 +119,8 @@ const NavBar = ({ currentUser, collections, activeSection, setActiveSection, rev
                 <li>
                   <a
                     onClick={() => setActiveSection("home")}
-                    className={`flex items-center w-full space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                      activeSection === "home" ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
-                    }`}
+                    className={`flex items-center w-full space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${activeSection === "home" ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
                   >
                     <Home className={`w-6 h-6 ${activeSection === "home" ? 'text-blue-700' : 'text-gray-600'}`} />
                     <span>Home</span>
@@ -126,9 +129,8 @@ const NavBar = ({ currentUser, collections, activeSection, setActiveSection, rev
                 <li>
                   <a
                     onClick={() => setActiveSection("gallery")}
-                    className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                      activeSection === "gallery" ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
-                    }`}
+                    className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${activeSection === "gallery" ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
                   >
                     <Image className={`w-6 h-6 ${activeSection === "gallery" ? 'text-blue-700' : 'text-gray-600'}`} />
                     <span>Galeria</span>
@@ -137,9 +139,8 @@ const NavBar = ({ currentUser, collections, activeSection, setActiveSection, rev
                 <li>
                   <a
                     onClick={() => setActiveSection("coupleProfile")}
-                    className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                      activeSection === "coupleProfile" ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
-                    }`}
+                    className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${activeSection === "coupleProfile" ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
                   >
                     <Users2 className={`w-6 h-6 ${activeSection === "coupleProfile" ? 'text-blue-700' : 'text-gray-600'}`} />
                     <span>Perfil do casal</span>
@@ -196,7 +197,7 @@ const NavBar = ({ currentUser, collections, activeSection, setActiveSection, rev
                 required
                 type="text"
                 name="destiny"
-                value={formData.destiny}
+                value={formData.destiny || ''}
                 onChange={handleChange}
                 className="w-full py-2 px-4 border rounded-lg"
                 placeholder="Pra onde vamos?"
@@ -207,7 +208,7 @@ const NavBar = ({ currentUser, collections, activeSection, setActiveSection, rev
               <input
                 type="text"
                 name="event"
-                value={formData.event}
+                value={formData.event || ''}
                 onChange={handleChange}
                 className="w-full py-2 px-4 border rounded-lg"
                 placeholder="Aniversário de namoro"
@@ -215,45 +216,45 @@ const NavBar = ({ currentUser, collections, activeSection, setActiveSection, rev
             </FormField>
 
             <FormField label="Data (Opcional)">
-                <input 
-                  type="datetime-local"
-                  name="calendar"
-                  value={formData.calendar}
-                  onChange={handleChange}
-                  className="w-full py-2 px-4 border rounded-lg"
-                />
+              <input
+                type="datetime-local"
+                name="calendar"
+                value={formData.calendar || ''}
+                onChange={handleChange}
+                className="w-full py-2 px-4 border rounded-lg"
+              />
             </FormField>
-            
+
             <FormField label="Categoria">
               <select
-                name="collectionId"
-                value={formData.collectionId}
+                name="category"
+                value={formData.category || ''}
                 onChange={handleChange}
                 className="w-full py-2 px-4 border rounded-lg"
               >
                 <option value="">Selecione uma categoria</option>
-                {collections.collections.length > 0 && collections.collections.map((collection) => (
-                  <option key={collection.id} value={collection.id}>
-                    {collection.title}
+                {coupleData.dates_categories.length > 0 && coupleData.dates_categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
                   </option>
                 ))}
               </select>
-              <button className="border rounded-lg ml-3 p-2"><Plus /></button>
+              <button onClick={() => setIsCategoryModalOpen(true)} className="border rounded-lg ml-3 p-2"><Plus /></button>
             </FormField>
 
-            <ModalActions onClose={handleClose} onSubmit={handleSaveDate} agreeMessage={'Salvar'} desagreeMessage={'Cancelar'}/>
+            <ModalActions onClose={handleClose} onSubmit={handleSaveDate} agreeMessage={'Salvar'} desagreeMessage={'Cancelar'} />
           </BaseModal>
 
           <BaseModal isOpen={isCategoryModalOpen} onClose={handleCategoryClose} title="Nova Categoria">
-            <FormField label="Nome da Categoria">
+            <FormField label="Categoria">
               <input
                 required
                 type="text"
-                name="title"
-                value={categoryData.title}
+                name="category"
+                value={categoryData.category || ''}
                 onChange={handleCategoryChange}
                 className="w-full py-2 px-4 border rounded-lg"
-                placeholder="Nome da categoria"
+                placeholder="Filmes, restaurantes, festivais..."
               />
             </FormField>
 

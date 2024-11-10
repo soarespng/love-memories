@@ -16,7 +16,6 @@ export default function AuthHome() {
   const [activities, setActivities] = useState([]);
   const [finishedActivities, setFinishedActivities] = useState(0);
   const [coupleData, setCoupleData] = useState(null);
-  const [collections, setCollections] = useState([]);
   const [userData, setUserData] = useState({ user1: null, user2: null });
   const [currentUser, setCurrentUser] = useState([])
   const [daysTogether, setDaysTogether] = useState(0);
@@ -25,7 +24,6 @@ export default function AuthHome() {
   const revalidateData = async () => {
     if (coupleData?.id) {
       await fetchAllDates(coupleData.id);
-      await fetchCollections(coupleData.id);
     }
   };
 
@@ -95,7 +93,6 @@ export default function AuthHome() {
         setCoupleData(data.couple);
         await fetchUsersData(data.couple.user1_id, data.couple.user2_id);
         await fetchAllDates(data.couple.id);
-        await fetchCollections(data.couple.id);
 
         setDataLoaded(true);
       } else {
@@ -147,26 +144,21 @@ export default function AuthHome() {
     }
   };
 
-  const fetchCollections = async (coupleId) => {
-    try {
-      const response = await fetch(`/api/collections/${coupleId}`);
-
-      if (response.ok) {
-        const data = await response.json();
-        setCollections(data);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar coleções:', error);
-    }
-  };
-
   if (isLoading || !dataLoaded) {
     return null;
   }
 
   return (
     <>
-      <NavBar currentUser={currentUser} collections={collections} activeSection={activeSection} setActiveSection={setActiveSection} revalidateData={revalidateData} />
+      <NavBar
+        currentUser={currentUser}
+        coupleData={coupleData}
+        activeSection={activeSection}
+        setActiveSection={setActiveSection}
+        revalidateData={revalidateData}
+        revalidateCoupleData={revalidateCoupleData}
+      />
+
       <div className="flex">
         <div className="hidden sm:block sm:min-w-64 max-w-64 h-screen"></div>
 
@@ -179,7 +171,8 @@ export default function AuthHome() {
             daysTogether={daysTogether}
             finishedActivities={finishedActivities}
             revalidateData={revalidateData}
-            revalidateCoupleData={revalidateCoupleData} />
+            revalidateCoupleData={revalidateCoupleData}
+          />
         )}
 
         {activeSection === "gallery" && (
@@ -187,10 +180,11 @@ export default function AuthHome() {
         )}
 
         {activeSection === "coupleProfile" && (
-          <CoupleProfile 
+          <CoupleProfile
             coupleData={coupleData}
-            userData={userData} 
-            revalidateCoupleData={revalidateCoupleData} />
+            userData={userData}
+            revalidateCoupleData={revalidateCoupleData}
+          />
         )}
       </div>
     </>

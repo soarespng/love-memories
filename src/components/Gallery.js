@@ -15,13 +15,14 @@ const Gallery = ({ activities }) => {
                             >
                                 <img
                                     src={activity.date_img}
-                                    alt={activity.title}
+                                    alt={activity.destiny}
                                     className="w-full h-48 object-cover rounded-lg"
                                 />
                                 <div className="p-2 flex justify-between">
                                     <div>
-                                        <h3 className="text-lg font-medium mb-1">{activity.title}</h3>
-                                        <p className="text-gray-600 text-lg">{activity.description}</p>
+                                        <h3 className="text-lg font-semibold mb-1">{activity.destiny}</h3>
+                                        <p className="text-gray-600 text-sm">{activity.date_event}</p>
+                                        <p className="text-gray-600 text-sm">{activity.calendar ? new Date(activity.calendar).toLocaleDateString() : NULL}</p>
                                     </div>
                                     <div className="h-fit flex items-center justify-center text-gray-600 text-sm">
                                         <span className="mr-1 mt-0.5 text-sm">{activity.rating}</span>

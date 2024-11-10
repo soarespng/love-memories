@@ -47,29 +47,12 @@ exports.getAllTasks = async (req, res) => {
   const { coupleId } = req.query;
 
   try {
-    const { data: collections, error: collectionError } = await supabase
-      .from('collections')
+    const { data: allDates, error: allDatesError } = await supabase
+      .from('dates')
       .select('*')
       .eq('couple_id', coupleId);
 
-    if (collectionError || !collections) {
-      return res.status(400).json({ error: 'Erro ao buscar listas de tarefas' });
-    }
-
-    const allDates = [];
-
-    for (const collection of collections) {
-      const { data: dates, error: datesError } = await supabase
-        .from('dates')
-        .select('*')
-        .eq('collection_id', collection.id);
-
-      if (datesError) {
-        return res.status(400).json({ error: 'Erro ao buscar tarefas da lista' });
-      }
-
-      allDates.push(...dates);
-    }
+      if(allDatesError) throw allDatesError;
 
     res.status(200).json({ allDates });
   } catch (error) {
@@ -126,6 +109,38 @@ exports.uploadImage = async (req, res) => {
     res.status(500).json({ message: error.message || "Erro interno", error: error.message });
   }
 };
+
+exports.updateCategories = async (req, res) => {
+  const { coupleId, category } = req.body;
+
+  try {
+    const { data: currentData, error: fetchError } = await supabase
+      .from('couples')
+      .select('dates_categories')
+      .eq('id', coupleId)
+      .single();
+
+    if (fetchError) {
+      return res.status(500).json({ error: fetchError.message });
+    }
+
+    const updatedCategories = currentData.dates_categories ? [...currentData.dates_categories, category] : [category];
+
+    const { data, error } = await supabase
+      .from('couples')
+      .update({ dates_categories: updatedCategories })
+      .eq('id', coupleId);
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    return res.status(200).json({ data });
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    return res.status(500).json({ error: "Unexpected error occurred." });
+  }
+}
 
 exports.updateCoupleData = async (req, res) => {
   const { couple_id, couple_img, couple_name, since } = req.body;
