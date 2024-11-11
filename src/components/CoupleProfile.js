@@ -5,10 +5,40 @@ const CoupleProfile = ({ coupleData, userData, revalidateCoupleData }) => {
     const coupleFileInputRef = useRef(null);
     const [coupleImagePreviewUrl, setCoupleImagePreviewUrl] = useState(coupleData?.couple_img || null);
     const [coupleImage, setCoupleImage] = useState(null);
-    const [coupleName, setCoupleName] = useState(coupleData?.couple_name || `${userData.user1} & ${userData.user2}`);
+    const [coupleName, setCoupleName] = useState(coupleData?.couple_name);
     const [sinceDate, setSinceDate] = useState(coupleData?.since || "");
     const [isSaving, setIsSaving] = useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
+    const showSuccessAlert = (message) => {
+        MySwal.fire({
+          text: message,
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          showConfirmButton: false,
+          timer: 3000,
+          customClass: {
+            popup: 'bg-blue-500 p-4 rounded-md shadow-lg',
+            title: 'font-bold text-lg',
+          }
+        });
+      };
+    
+      const showErrorAlert = (message) => {
+        MySwal.fire({
+          text: message,
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          showConfirmButton: false,
+          timer: 3000,
+          customClass: {
+            popup: 'bg-blue-500 p-4 rounded-md shadow-lg',
+            title: 'font-bold text-lg',
+          }
+        });
+      };
 
     const handleImageClick = () => {
         coupleFileInputRef.current?.click();
@@ -46,10 +76,12 @@ const CoupleProfile = ({ coupleData, userData, revalidateCoupleData }) => {
                 throw new Error("Erro ao salvar as configurações");
             }
 
+            showSuccessAlert("Informações atualizadas com sucesso!")
             revalidateCoupleData();
             setIsConfirmModalOpen(false);
         } catch (error) {
             console.error(error.message);
+            showErrorAlert(error.message);
         } finally {
             setIsSaving(false);
         }
@@ -110,7 +142,7 @@ const CoupleProfile = ({ coupleData, userData, revalidateCoupleData }) => {
 
                     <FormField label="Nome personalizado (Opcional)">
                         <input
-                            placeholder={coupleName}
+                            placeholder={coupleName || "Melhor casal do mundo"}
                             value={coupleName}
                             onChange={(e) => setCoupleName(e.target.value)}
                             className="w-full border rounded-lg p-2"
@@ -120,8 +152,8 @@ const CoupleProfile = ({ coupleData, userData, revalidateCoupleData }) => {
                     <FormField label="Data que se conheceram">
                         <input
                             type="datetime-local"
-                            value={sinceDate ? new Date(sinceDate).toISOString().slice(0,16)  : ''}
-                            onChange={(e) => setSinceDate(e.target.value)}
+                            value={sinceDate ? new Date(sinceDate).toLocaleString('sv-SE').slice(0, 16) : ''}
+                            onChange={(e) => setSinceDate(new Date(e.target.value).toISOString())}
                             className="w-full border rounded-lg p-2"
                         />
                     </FormField>

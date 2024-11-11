@@ -2,16 +2,49 @@ import React, { useState } from 'react';
 import { Home, Image, Users2, User, Plus, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { BaseModal, FormField, ModalActions } from '@/components/Modals';
+import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
+import withReactContent from 'sweetalert2-react-content';
+
+const MySwal = withReactContent(Swal);
 
 const NavBar = ({ currentUser, coupleData, activeSection, setActiveSection, revalidateData, revalidateCoupleData }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    destiny: '', event: '', calendar: '', category: ''
-  });
+  const [formData, setFormData] = useState({destiny: '', event: '', calendar: '', category: ''});
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [categoryData, setCategoryData] = useState({ coupleId: '', category: '' });
 
   const router = useRouter();
+
+  const showSuccessAlert = (message) => {
+    MySwal.fire({
+      text: message,
+      toast: true,
+      position: 'top-end',
+      icon: 'success',
+      showConfirmButton: false,
+      timer: 3000,
+      customClass: {
+        popup: 'bg-blue-500 p-4 rounded-md shadow-lg',
+        title: 'font-bold text-lg',
+      }
+    });
+  };
+
+  const showErrorAlert = (message) => {
+    MySwal.fire({
+      text: message,
+      toast: true,
+      position: 'top-end',
+      icon: 'error',
+      showConfirmButton: false,
+      timer: 3000,
+      customClass: {
+        popup: 'bg-blue-500 p-4 rounded-md shadow-lg',
+        title: 'font-bold text-lg',
+      }
+    });
+  };
 
   const handleNewDate = () => setIsOpen(true);
 
@@ -39,11 +72,13 @@ const NavBar = ({ currentUser, coupleData, activeSection, setActiveSection, reva
 
       if (!response.ok) throw new Error('Falha ao criar novo date');
 
+      showSuccessAlert("Date criado com sucesso!");
       setIsOpen(false);
       setFormData({ destiny: '', event: '', calendar: '', category: '' });
       revalidateData();
     } catch (error) {
       console.error('Erro ao salvar date:', error);
+      showErrorAlert(error.message);
     }
   };
 
@@ -61,11 +96,14 @@ const NavBar = ({ currentUser, coupleData, activeSection, setActiveSection, reva
 
       if (!response.ok) throw new Error('Falha ao criar nova categoria');
 
+      showSuccessAlert("Categoria criada com sucesso!");
+
       setIsCategoryModalOpen(false);
       setCategoryData({ coupleId: '', category: '' });
       revalidateCoupleData();
     } catch (error) {
       console.error('Erro ao salvar categoria:', error);
+      showErrorAlert(error.message);
     }
   };
 
@@ -232,7 +270,7 @@ const NavBar = ({ currentUser, coupleData, activeSection, setActiveSection, reva
                 onChange={handleChange}
                 className="w-full py-2 px-4 border rounded-lg"
               >
-                <option value="">Selecione uma categoria</option>
+                <option value="" disabled hidden>Selecione uma categoria</option>
                 {coupleData.dates_categories.length > 0 && coupleData.dates_categories.map((category) => (
                   <option key={category} value={category}>
                     {category}

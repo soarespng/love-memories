@@ -1,22 +1,58 @@
-import { useState, useRef } from "react";
-import { ImagePlus } from 'lucide-react';
-import { BaseModal, FormField, ModalActions, ImageUpload } from '@/components/Modals';
+import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
 import StarRating from '@/components/StarRating';
+import withReactContent from 'sweetalert2-react-content';
+
+import { ImagePlus } from 'lucide-react';
+import { useState, useRef } from "react";
+import { BaseModal, FormField, ModalActions, ImageUpload } from '@/components/Modals';
+
+const MySwal = withReactContent(Swal);
 
 const MainContent = ({ setActiveSection, activities, coupleData, userData, daysTogether, finishedActivities, revalidateData, revalidateCoupleData }) => {
   const fileInputRef = useRef(null);
+  const [rating, setRating] = useState(0);
   const coupleFileInputRef = useRef(null);
+  const [images, setImages] = useState([]);
+  const [description, setDescription] = useState('');
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [coupleImages, setCoupleImages] = useState([]);
   const [selectedTask, setSelectedTask] = useState(null);
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [couplePreviewUrl, setCouplePreviewUrl] = useState(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isCoupleImageModalOpen, setIsCoupleImageModalOpen] = useState(false);
-  const [rating, setRating] = useState(0);
-  const [description, setDescription] = useState('');
-  const [images, setImages] = useState([]);
-  const [coupleImages, setCoupleImages] = useState([]);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [couplePreviewUrl, setCouplePreviewUrl] = useState(null);
+
+  const showSuccessAlert = (message) => {
+    MySwal.fire({
+      text: message,
+      toast: true,
+      position: 'top-end',
+      icon: 'success',
+      showConfirmButton: false,
+      timer: 3000,
+      customClass: {
+        popup: 'bg-blue-500 p-4 rounded-md shadow-lg',
+        title: 'font-bold text-lg',
+      }
+    });
+  };
+
+  const showErrorAlert = (message) => {
+    MySwal.fire({
+      text: message,
+      toast: true,
+      position: 'top-end',
+      icon: 'error',
+      showConfirmButton: false,
+      timer: 3000,
+      customClass: {
+        popup: 'bg-blue-500 p-4 rounded-md shadow-lg',
+        title: 'font-bold text-lg',
+      }
+    });
+  };
 
   const handleImageClick = () => {
     fileInputRef.current?.click();
@@ -81,7 +117,7 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
 
   const handleSaveDetails = async () => {
     try {
-      const date_img = await UploadImage(selectedTask.id, selectedTask.collection_id, images[0]);
+      const date_img = await UploadImage(selectedTask.id, selectedTask.couple_id, images[0]);
 
       const response = await fetch('/api/date/update', {
         method: 'POST',
@@ -93,8 +129,10 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Erro ao finalizar date');
+      showSuccessAlert("Date finalizado, confira a galeria!");
     } catch (error) {
       console.error(error.message);
+      showErrorAlert(error.message);
     }
 
     setIsDetailsModalOpen(false);
@@ -114,7 +152,10 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
         body: JSON.stringify({ id: task.id, destiny: task.destiny, dateEvent: task.date_event, calendar: task.calendar }),
       });
       if (!response.ok) throw new Error('Erro ao salvar alterações do date');
+
+      showSuccessAlert('Alterado com sucesso!');
     } catch (error) {
+      showErrorAlert(error.message);
       console.error(error);
     }
   };
@@ -125,17 +166,22 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Erro ao excluir date');
+
+      showSuccessAlert('Date excluido com sucesso!');
     } catch (error) {
       console.error(error);
+
+      showErrorAlert(error.message);
     }
+
     revalidateData();
   };
 
-  const UploadImage = async (task_id, collection_id, file) => {
+  const UploadImage = async (task_id, couple_id, file) => {
     try {
       const formData = new FormData();
       formData.append('task_id', task_id);
-      formData.append('collection_id', collection_id);
+      formData.append('couple_id', couple_id);
       formData.append('file', file);
 
       const response = await fetch('/api/date/uploadImage', {
@@ -316,34 +362,38 @@ const MainContent = ({ setActiveSection, activities, coupleData, userData, daysT
 
       <BaseModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Editar Date">
         <FormField label="Destino">
-          <input 
-            type="text" 
-            value={selectedTask?.destiny || ''} 
-            onChange={(e) => setSelectedTask({ ...selectedTask, destiny: e.target.value })} 
+          <input
+            type="text"
+            value={selectedTask?.destiny || ''}
+            onChange={(e) => setSelectedTask({ ...selectedTask, destiny: e.target.value })}
             className="w-full border rounded-lg p-2" />
         </FormField>
         <FormField label="Evento">
-          <input 
-          type="text" 
-          value={selectedTask?.date_event || ''} 
-          onChange={(e) => setSelectedTask({ ...selectedTask, date_event: e.target.value })} 
-          className="w-full border rounded-lg p-2" />
+          <input
+            type="text"
+            value={selectedTask?.date_event || ''}
+            onChange={(e) => setSelectedTask({ ...selectedTask, date_event: e.target.value })}
+            className="w-full border rounded-lg p-2" />
         </FormField>
         <FormField label="Data">
-          <input type="datetime-local" 
-          value={selectedTask?.calendar ? new Date(selectedTask.calendar).toISOString().slice(0,16)  : ''} 
-          onChange={(e) => setSelectedTask({ ...selectedTask, calendar: e.target.value })} 
-          className="w-full border rounded-lg p-2" />
+          <input type="datetime-local"
+            value={selectedTask?.calendar ? new Date(selectedTask?.calendar).toLocaleString('sv-SE').slice(0, 16) : ''}
+            onChange={(e) => setSelectedTask({ ...selectedTask, calendar: new Date(e.target.value).toISOString() })}
+            className="w-full border rounded-lg p-2" />
         </FormField>
-        <ModalActions onClose={() => setIsEditModalOpen(false)} onSubmit={async () => {
-          await saveDateChanges(selectedTask);
-          setIsEditModalOpen(false);
-          revalidateData();
-        }} agreeMessage="Salvar" desagreeMessage="Cancelar" />
+
+        <ModalActions
+          onClose={() => setIsEditModalOpen(false)}
+          onSubmit={async () => {
+            await saveDateChanges(selectedTask);
+            setIsEditModalOpen(false);
+            revalidateData();
+          }} agreeMessage="Salvar" desagreeMessage="Cancelar" />
+
         <button onClick={async () => {
           await deleteDate(selectedTask.id);
           setIsEditModalOpen(false);
-        }} className="bg-red-500 text-white w-full py-3 px-4 rounded-xl mt-4">Excluir Date</button>
+        }} className="bg-rose-500 text-white w-full py-3 px-4 rounded-xl mt-4">Excluir Date</button>
       </BaseModal>
 
       <BaseModal isOpen={isCoupleImageModalOpen} onClose={handleCoupleImageClose} title="Imagem do casal">

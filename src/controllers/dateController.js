@@ -2,11 +2,12 @@ const supabase = require('../config/supabase');
 
 exports.createNewDate = async (req, res) => {
   const { coupleId, destiny, event, calendar, category } = req.body;
+  const calendarValue = calendar ? calendar : null;
 
   try {
     const { data: date, error: dateError } = await supabase
       .from('dates')
-      .insert([{ couple_id: coupleId, destiny: destiny, date_event: event, category: category, calendar: calendar, date_finished: false }]);
+      .insert([{ couple_id: coupleId, destiny: destiny, date_event: event, category: category, calendar: calendarValue, date_finished: false }]);
 
     if (dateError) {
       return res.status(400).json({ error: 'Erro ao inserir novo date' });
@@ -28,9 +29,12 @@ exports.updateDate = async (req, res) => {
       .update([{ destiny: destiny, date_event: dateEvent, calendar: calendar }])
       .eq('id', id);
 
-    if (error) console.log(error)
-  } catch {
+    if (error) console.error(error);
 
+      res.status(200).json({ message: 'Date alterado com sucesso', date: data });
+  } catch (error) {
+    console.error('Erro ao alterar date:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
   }
 }
 
@@ -55,7 +59,7 @@ exports.finishDate = async (req, res) => {
 };
 
 exports.uploadImage = async (req, res) => {
-  const { task_id, collection_id } = req.body;
+  const { task_id, couple_id } = req.body;
   const file = req.file;
 
   if (!file) {
@@ -65,7 +69,7 @@ exports.uploadImage = async (req, res) => {
   try {
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('dates_images')
-      .upload(`${collection_id}/${task_id}`, file.buffer, {
+      .upload(`${couple_id}/${task_id}`, file.buffer, {
         upsert: true,
         contentType: file.mimetype,
       });
@@ -73,7 +77,7 @@ exports.uploadImage = async (req, res) => {
 
     const { data: publicUrlData } = await supabase.storage
       .from('dates_images')
-      .getPublicUrl(`${collection_id}/${task_id}`);
+      .getPublicUrl(`${couple_id}/${task_id}`);
 
     res.status(200).json({ message: "Upload concluído", public_url: publicUrlData.publicUrl });
   } catch (error) {
