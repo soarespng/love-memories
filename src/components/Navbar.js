@@ -271,7 +271,7 @@ const NavBar = ({ currentUser, coupleData, activeSection, setActiveSection, reva
                 className="w-full py-2 px-4 border rounded-lg"
               >
                 <option value="" disabled hidden>Selecione uma categoria</option>
-                {coupleData.dates_categories.length > 0 && coupleData.dates_categories.map((category) => (
+                {Array.isArray(coupleData.dates_categories) && coupleData.dates_categories.length > 0 && coupleData.dates_categories.map((category) => (
                   <option key={category} value={category}>
                     {category}
                   </option>
