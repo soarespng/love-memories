@@ -161,7 +161,7 @@ export default function SyncPage() {
                 value={inputCode}
                 onChange={(e) => setInputCode(e.target.value)}
                 className="w-full p-3 rounded-lg border border-gray-200"
-                placeholder="Enter sync code"
+                placeholder="Insira o código"
               />
             </div>
             <button
